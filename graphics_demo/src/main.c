@@ -34,17 +34,29 @@ int rightPressed(void);
 int upPressed(void);
 int downPressed(void);
 
+
 //Signature for the Game Over screen
 void gameOver(void);
 
+//Displays a black screen
+void displayBlack(void);
+
+//Signature to display the level completed
+void displayLevelCompleted(void);
+void displayLevel2Completed(void);
+
 //Signature for the Level Completed Screen
 void levelCompleted(void);
+void level2Completed(void);
+
+//Signature to display if the player finishes the game
+void gameCompleted(void);
 
 //Siganture to check if the player inside the enemy.
 void playerInsideEnemy(uint16_t,uint16_t,uint16_t,uint16_t);
 
 //Signature to check if the player is inside the meat
-void playerInsideMeat(uint16_t,uint16_t,uint16_t,uint16_t);
+int playerInsideMeat(uint16_t,uint16_t,uint16_t,uint16_t);
 
 //Signature to check if enemy hit player
 void enemyInsidePlayer(uint16_t,uint16_t,uint16_t,uint16_t);
@@ -52,8 +64,9 @@ void enemyInsidePlayer(uint16_t,uint16_t,uint16_t,uint16_t);
 //Signature to check if the player hits the ocean
 int hitOcean(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to generate a second level
+//Signature to generate a second & third level
 void level2(void);
+void level3(void);
 
 volatile uint32_t milliseconds;
 
@@ -156,9 +169,6 @@ int deltaX = 1;
 //Variables for the meat
 uint16_t meatX = 55;
 uint16_t meatY = 20;
-
-//Global Variable
-int continue_game = 0;
 
 int main()
 {	
@@ -264,8 +274,18 @@ int main()
 			{
 				putImage(x,y,12,16,luffy4,0,hinverted);
 			}
+			
 			playerInsideEnemy(x,y,enemyX,enemyY);
-			playerInsideMeat(x,y,meatX,meatY);
+
+			if (playerInsideMeat(x,y,meatX,meatY) == 1)
+			{
+				displayBlack();
+				delay(50);
+				displayLevelCompleted();
+				delay(50);	
+				levelCompleted();
+			}
+			
 			
 			if (hitOcean(x,y,12,16) == 1)
 			{
@@ -373,6 +393,7 @@ void setupIO()
 	enablePullUp(GPIOA,11);
 	enablePullUp(GPIOA,8);
 }
+
 int leftPressed()
 {
 	if ((GPIOB->IDR & (1 << 5))==0)// left pressed
@@ -424,9 +445,7 @@ int upPressed()
 
 void gameOver()
 {
-	fillRectangle(0,0,128,160,0);
-	fillRectangle(40,0,45,179,0);
-	fillRectangle(0,65,128,20,0);
+	displayBlack();
 	
 	while (1)
 	{
@@ -453,29 +472,74 @@ void playerInsideEnemy(uint16_t x,uint16_t y,uint16_t enemyX ,uint16_t enemyY)
 	}
 }
 
-void playerInsideMeat(uint16_t x,uint16_t y,uint16_t meatX,uint16_t meatY)
+int playerInsideMeat(uint16_t x,uint16_t y,uint16_t meatX,uint16_t meatY)
 {	
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(meatX,meatY,12,16,x,y) || isInside(meatX,meatY,12,16,x+12,y) || isInside(meatX,meatY,12,16,x,y+16) || isInside(meatX,meatY,12,16,x+12,y+16) )
-	{	
-		levelCompleted();
+	{
+		return 1;
 	}
+
+	return 0;
+}
+
+void displayBlack(void)
+{
+	fillRectangle(0,0,128,160,0);
+	fillRectangle(40,0,45,179,0);
+	fillRectangle(0,65,128,20,0);
+}
+
+void displayLevelCompleted(void)
+{
+
+		while (rightPressed() != 0)
+		{
+			printText("Level Completed",8,10,255,0);
+			printText("Right Button", 8, 20, 255, 0);
+			printText("To begin", 8, 30, 255, 0);
+			printText("Next level!", 8, 40, 255, 0);
+
+
+			putImage(45,70,32,32,smile,0,0);
+		}
+
+		delay(50);
+
+	levelCompleted();
+
+}
+
+void displayLevel2Completed(void)
+{
+
+		while (rightPressed() != 0)
+		{
+			printText("Level 2 Completed",8,10,255,0);
+			printText("Right Button", 8, 20, 255, 0);
+			printText("To begin", 8, 30, 255, 0);
+			printText("Next level!", 8, 40, 255, 0);
+
+
+			putImage(45,70,32,32,smile,0,0);
+		}
+
+		delay(50);
+
+	level2Completed();
+
 }
 
 void levelCompleted(void)
 {
+	//Variable to continue
+	int continue_game = 0;
+
 	while (continue_game == 0)
 		{
-			printText("Level Completed",8,10,255,0);
-            printText("Right Button", 8, 20, 255, 0);
-            printText("To begin", 8, 30, 255, 0);
-			printText("Next level!", 8, 40, 255, 0);
-
 			fillRectangle(0,0,128,160,0);
 			fillRectangle(40,0,45,179,0);
 			fillRectangle(0,65,128,20,0);
-
-			putImage(64-32,80-32,32,32,smile,0,0);	
 
             if (rightPressed() == 0) // right pressed
             {    
@@ -488,9 +552,53 @@ void levelCompleted(void)
 
 					delay(1000);
 					level2();
+					delay(1000);
                 } 
 			}
 		}
+}
+
+void level2Completed(void)
+{
+	//Variable to continue
+	int continue_game = 0;
+
+	while (continue_game == 0)
+		{
+			fillRectangle(0,0,128,160,0);
+			fillRectangle(40,0,45,179,0);
+			fillRectangle(0,65,128,20,0);
+
+            if (rightPressed() == 0) // right pressed
+            {    
+            	continue_game = 1;    
+                
+				while (1)
+                {
+					printText("Level 3",10,120,255,0);
+					printText("Loading....",10,140,255,0);
+
+					delay(1000);
+					level3();
+					delay(1000);
+                } 
+			}
+		}
+}
+
+void gameCompleted(void)
+{
+	displayBlack();
+	
+	while (1)
+	{
+		printText("Congradulations",6,10,255,0);
+		printText("You completed", 6, 20, 255, 0);
+		printText("Crossy Seas", 6, 30, 255, 0);
+		printText("By Max & Jennifer", 6, 40, 255, 0);
+
+		putImage(50,70,32,32,smile,0,0);
+	}		
 }
 
 void level2(void)
@@ -501,15 +609,21 @@ void level2(void)
 	x = 55;
 	y = 140;
 
+	//Variables for enemy
+	enemyX = 55;
+	enemyY = 65;
+	deltaX = 1;
+
 	uint16_t oldx = x;
 	uint16_t oldy = y;
 
 	renderGame();
-	
-	putImage(55,140,12,16,luffy1,0,0);
-	putImage(55,20,12,16,meat,0,0);
-
+	delay(1000);
+	renderAssets();
+	delay(1000);
 	renderBarriers();
+	delay(1000);
+	
 
 	while (1)
 	{
@@ -578,8 +692,7 @@ void level2(void)
 			{
 				y = y - 2;
 				vmoved = 1;
-				vinverted = 1;
-				
+				vinverted = 1;	
 			}
 		}
 		if ((vmoved) || (hmoved))
@@ -604,8 +717,153 @@ void level2(void)
 			{
 				putImage(x,y,12,16,luffy4,0,hinverted);
 			}
+			
 			playerInsideEnemy(x,y,enemyX,enemyY);
-			playerInsideMeat(x,y,meatX,meatY);
+			
+			if (playerInsideMeat(x,y,meatX,meatY) == 1)
+			{
+				displayBlack();
+				delay(50);
+				displayLevel2Completed();
+				delay(50);	
+				level2Completed();
+			}
+			
+			if (hitOcean(x,y,12,16) == 1)
+			{
+				gameOver();
+			}
+			
+		}		
+		delay(50);
+	}
+}
+
+void level3(void)
+{
+
+	delay(1000);
+	
+	x = 55;
+	y = 140;
+
+	//Variables for enemy
+	enemyX = 55;
+	enemyY = 65;
+	deltaX = 1;
+
+	uint16_t oldx = x;
+	uint16_t oldy = y;
+
+	renderGame();
+	delay(1000);
+	renderAssets();
+	delay(1000);
+	renderBarriers();
+	delay(1000);
+	
+
+	while (1)
+	{
+		hmoved = vmoved = 0;
+		hinverted = vinverted = 0;
+
+		//Enemy Movement
+		if (enemyX > 100)
+		{
+			deltaX = -1;
+		}
+		
+		if (enemyX < 1)
+		{
+			deltaX = 1;
+		}
+
+		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
+		
+		enemyX = enemyX + deltaX;
+
+		putImage(enemyX,enemyY,12,16,enemy,0,0);
+
+		enemyInsidePlayer(enemyX,enemyY,x,y);
+
+		//Luffy Movement
+		//Deletes the original image off the spawn
+	
+		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
+		{
+			putImage(x,y,12,16,delete,0,0);
+		}
+		
+
+		if (rightPressed() == 0) // right pressed
+		{					
+			if (x < 110)
+			{
+				x = x + 2;
+				hmoved = 1;
+				hinverted=0;
+			}						
+		}
+		if (leftPressed() == 0) // left pressed
+		{			
+			
+			if (x > 10)
+			{
+				x = x - 2;
+				hmoved = 1;
+				hinverted=1;
+			}			
+		}
+		if ( downPressed() == 0) // down pressed
+		{
+			if (y < 140)
+			{
+				y = y + 2;			
+				vmoved = 1;
+				vinverted = 0;
+			}
+		}
+		if (upPressed() == 0 ) // up pressed
+		{			
+			if (y > 16)
+			{
+				y = y - 2;
+				vmoved = 1;
+				vinverted = 1;	
+			}
+		}
+		if ((vmoved) || (hmoved))
+		{
+			// only redraw if there has been some movement (reduces flicker)
+			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
+			
+			oldx = x;
+			oldy = y;					
+			
+			if (hmoved)
+			{
+				if (toggle)
+					putImage(x,y,12,16,luffy2,hinverted,0);
+				else
+					putImage(x,y,12,16,luffy3,hinverted,0);
+
+				
+				toggle = toggle ^ 1;
+			}
+			else
+			{
+				putImage(x,y,12,16,luffy4,0,hinverted);
+			}
+			
+			playerInsideEnemy(x,y,enemyX,enemyY);
+			
+			if (playerInsideMeat(x,y,meatX,meatY) == 1)
+			{
+				displayBlack();
+				delay(50);
+				gameCompleted();
+			}
 			
 			if (hitOcean(x,y,12,16) == 1)
 			{
