@@ -29,7 +29,6 @@ void renderAssets2(void);
 void renderLevel2(void);
 void renderLevel3(void);
 void setUpSystem(void);
-void renderBarriers(void);
 
 //Button Movement 
 int leftPressed(void);
