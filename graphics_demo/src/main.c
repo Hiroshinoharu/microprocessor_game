@@ -20,6 +20,7 @@ void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
+void initSound();
 
 
 //Signature to render the game's textures
@@ -205,7 +206,9 @@ int main()
 	displayBlack();
 
 	while (leftPressed() != 0)
-		{			
+		{	
+			
+				
 			printText("Crossy Seas",25,10,255,0);
 			putImage(30,30,64,61,logo,0,0);
 			printText("By Max & Jennifier",0,110,255,0);
@@ -213,6 +216,7 @@ int main()
 			printText("Ready to set sea", 0, 130, 255, 0);
 			printText("Left Button", 0, 140, 255, 0);
 			printText("To begin!", 0, 150, 255, 0);
+
 		}
 
 		displayBlack();
@@ -240,6 +244,9 @@ int main()
 	{
 		hmoved = vmoved = 0;
 		hinverted = vinverted = 0;
+
+		playNote(1000);	
+		delay(20);
 
 		//Enemy Movement
 		if (enemyX > 100)
@@ -357,6 +364,7 @@ void setUpSystem()
 	initClock();
 	initSysTick();
 	setupIO();
+	initTimer();
 }
 void initSysTick(void)
 {
@@ -517,6 +525,7 @@ void enemyInsidePlayer(uint16_t enemyX,uint16_t enemyY,uint16_t x ,uint16_t y)
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(x,y,12,16,enemyX,enemyY) || isInside(x,y,12,16,enemyX+12,enemyY) || isInside(x,y,12,16,enemyX,enemyY+16) || isInside(x,y,12,16,enemyX+12,enemyY+16) )
 	{
+		playNote(1000);
 		gameOver();
 	}
 }

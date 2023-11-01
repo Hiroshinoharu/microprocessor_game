@@ -1,6 +1,11 @@
 #include <stdint.h>
 #include <stm32f031x6.h>
 
+void playNote(uint32_t Freq);
+void initTimer(void);
+
+int main()
+{
 void playNote(uint32_t Freq)
 {	
 	// Counter is running at 65536 Hz 
