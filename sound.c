@@ -2,6 +2,9 @@
 #include <stm32f031x6.h>
 #include "musical_notes.h"
 
+void playNote(uint32_t Freq);
+void initTimer(void);
+
 void initTimer()
 {
 	// Power up the timer module
