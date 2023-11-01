@@ -1,15 +1,11 @@
+#include <stdint.h>
 #include <stm32f031x6.h>
 #include "musical_notes.h"
-void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
-void playNote(uint32_t Freq)
-{	
-	// Counter is running at 65536 Hz 
-	TIM14->ARR = (uint32_t)65536/((uint32_t)Freq); 
-	TIM14->CCR1 = TIM14->ARR/2;	
-	TIM14->CNT = 0; // set the count to zero initially
-	TIM14->CR1 |= (1 << 0); // and enable the counter
-}
-void initSound()
+
+void playNote(uint32_t Freq);
+void initTimer(void);
+
+void initTimer()
 {
 	// Power up the timer module
 	RCC->APB1ENR |= (1 << 8);
@@ -23,4 +19,13 @@ void initSound()
 	TIM14->ARR = (48000000UL/(uint32_t)(TIM14->PSC))/((uint32_t)C4);
 	TIM14->CCR1 = TIM14->ARR/2;	
 	TIM14->CNT = 0;
+}
+
+void playNote(uint32_t Freq)
+{	
+	// Counter is running at 65536 Hz 
+	TIM14->ARR = (uint32_t)65536/((uint32_t)Freq); 
+	TIM14->CCR1 = TIM14->ARR/2;	
+	TIM14->CNT = 0; // set the count to zero initially
+	TIM14->CR1 |= (1 << 0); // and enable the counter
 }
