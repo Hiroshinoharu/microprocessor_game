@@ -517,6 +517,7 @@ void enemyInsidePlayer(uint16_t enemyX,uint16_t enemyY,uint16_t x ,uint16_t y)
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(x,y,12,16,enemyX,enemyY) || isInside(x,y,12,16,enemyX+12,enemyY) || isInside(x,y,12,16,enemyX,enemyY+16) || isInside(x,y,12,16,enemyX+12,enemyY+16) )
 	{
+		playNote(1000);
 		gameOver();
 	}
 }
