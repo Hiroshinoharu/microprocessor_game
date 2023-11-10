@@ -5,12 +5,19 @@
 #include "musical_notes.h"
 #include "serial.h"
 
-//Symbolic Name for the Bridge blocks
+// These are symbolic names representing the counts of different types of bridge blocks.
+// BLOCK_COUNT_TOP: Number of top blocks in the bridge
+// BLOCK_COUNT_BOTTOM: Number of bottom blocks in the bridge
+// BLOCK_COUNT_SIDE: Number of side blocks in the bridge
 # define BLOCK_COUNT_TOP 6
 # define BLOCK_COUNT_BOTTOM 7
 # define BLOCK_COUNT_SIDE 4
 
-//Basic Game Structure
+// A signature to render the game
+void setUpSystem(void);
+
+// These functions are part of the basic game structure and handle initialization,
+// display setup, system tick, delay, I/O setup, and pin configuration.
 void display_begin();
 void initClock(void);
 void initSysTick(void);
@@ -21,37 +28,40 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 
-
-//Signature to render the game's textures
+// Signature to render the game's textures
 void renderGame(void);
+
+// These functions are responsible for rendering different aspects of the game,
+// such as textures, assets, and specific levels.
 void renderAssets(void);
 void renderAssets2(void);
 void renderLevel2(void);
 void renderLevel3(void);
-void setUpSystem(void);
 
-//Button Movement 
+// These functions handle various game-related actions and conditions, such as game over, completing levels,
+// checking player positions relative to enemies and objects, and generating additional game levels.
+
+// These functions are used to check whether certain movement buttons (left, right, up, down) are pressed.
 int leftPressed(void);
 int rightPressed(void);
 int upPressed(void);
 int downPressed(void);
 
-
-//Signature for the Game Over screen
+// Signature for the Game Over screen
 void gameOver(void);
 
-//Displays a black screen
+// Displays a black screen
 void displayBlack(void);
 
-//Signature to display the level completed
+// Signature to display the level completed screen
 void displayLevelCompleted(void);
 void displayLevel2Completed(void);
 
-//Signature for the Level Completed Screen
+// Signature for the Level Completed Screen
 void levelCompleted(void);
 void level2Completed(void);
 
-//Signature to display if the player finishes the game
+// Signature to display if the player finishes the game
 void gameCompleted(void);
 
 //Siganture to check if the player inside the enemy.
@@ -60,16 +70,17 @@ void playerInsideEnemy(uint16_t,uint16_t,uint16_t,uint16_t);
 //Signature to check if the player is inside the meat
 int playerInsideMeat(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to check if enemy hit player
+// Signature to check if enemy hit player
 void enemyInsidePlayer(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to check if the player hits the ocean
+// Signature to check if the player hits the ocean
 int hitOcean(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to generate a second & third level
+// Signature to generate a second & third level
 void level2(void);
 void level3(void);
 
+// A volatile variable to store the elapsed time in milliseconds
 volatile uint32_t milliseconds;
 
 //Barriers are set to the top-left corner 
@@ -84,24 +95,27 @@ const uint16_t barrier2Y[BLOCK_COUNT_TOP] = {0,10,20,30,40,50};
 const uint16_t barrier3X[BLOCK_COUNT_BOTTOM] = {30,30,30,30,30,30,30};
 const uint16_t barrier3Y[BLOCK_COUNT_BOTTOM] = {145,135,125,115,105,95,85};
 
-//Barriers are set to the bottom-right of the corner
+//Barriers are set to the bottom-right of the corner 
 const uint16_t barrier4X[BLOCK_COUNT_BOTTOM] = {80,80,80,80,80,80,80};
 const uint16_t barrier4Y[BLOCK_COUNT_BOTTOM] = {145,135,125,115,105,95,85};
 
-//Barrier set with the side bridge
+//Barrier set with the side bridge top-left corner
 const uint16_t side_barrierX[BLOCK_COUNT_SIDE] = {0,10,20,30};
 const uint16_t side_barrierY[BLOCK_COUNT_SIDE] = {85,85,85,85};
 
+//Barrier set with the side bridge top-right corner
 const uint16_t side_barrier2X[BLOCK_COUNT_SIDE] = {0,10,20,30};
 const uint16_t side_barrier2Y[BLOCK_COUNT_SIDE] = {49,49,49,49};
 
+//Barrier set with the side bridge bottom-left corner
 const uint16_t side_barrier3X[BLOCK_COUNT_SIDE] = {80,90,100,110};
 const uint16_t side_barrier3Y[BLOCK_COUNT_SIDE] = {85,85,85,85};
 
+//Barrier set with the side bridge bottom-right corner
 const uint16_t side_barrier4X[BLOCK_COUNT_SIDE] = {80,90,100,110};
 const uint16_t side_barrier4Y[BLOCK_COUNT_SIDE] = {49,49,49,49};
 
-
+//All assests are generated including our main character luffy, the enemy, the meat object and all the symbols used around the game and assets delete
 const uint16_t luffy1[]=
 {
 	27649,27649,27649,16142,16142,16142,16142,16142,16142,27649,27649,27649,27649,27649,27649,40224,40224,40224,40224,40224,40224,27649,27649,27649,27649,27649,16142,16142,16142,16142,16142,16142,16142,16142,27649,27649,27649,27649,27649,51505,51505,51505,51505,51505,51505,27649,27649,27649,27649,27649,27649,65535,0,40375,40375,0,65535,27649,27649,27649,27649,27649,27649,40375,40375,40375,40375,40375,40375,27649,27649,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,27649,27649,16621,16621,16621,16621,16621,16621,27649,27649,27649,27649,27649,27649,16621,16621,16621,16621,16621,16621,27649,27649,27649,27649,27649,27649,65535,65535,27649,27649,65535,65535,27649,27649,27649,27649,27649,27649,40375,40375,27649,27649,40375,40375,27649,27649,27649,27649,27649,27649,22355,22355,27649,27649,22355,22355,27649,27649,27649,
@@ -162,11 +176,9 @@ const uint16_t waves[] =
 	59132,59132,59132,59132,59132,59132,59132,59132,59132,65535,65535,59132,65535,59132,59132,65535,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,
 };
 
-//Global Variables for our background
+//Global Variables for our waves background
 uint16_t waveX = 0;
 uint16_t wavesY = 0;
-
-
 
 //Global Variables for the game
 //Variables declared for our main character Luffy
@@ -178,7 +190,7 @@ int vmoved = 0;
 uint16_t x = 55;
 uint16_t y = 140;
 
-//Variables for enemies
+//Variables for the enemies co-ordinates
 uint16_t enemyX = 55;
 uint16_t enemyY = 65;
 
@@ -188,35 +200,39 @@ uint16_t enemy2Y = 100;
 uint16_t enemy3X = 55;
 uint16_t enemy3Y = 120;
 
-//Enemy Movement
+//Gloabl variables for enemy movement
 int deltaX = 1;
 int delta2X = -1;
 int delta3X = 1;
 
 
-//Variables for the meat
+//Variables for the meat co-ordinates
 uint16_t meatX = 55;
 uint16_t meatY = 20;
 
 int main()
 {
-	setUpSystem();
+	
+	setUpSystem(); //Calls the sytem setup yo render the game
 
-	displayBlack();
+	
+	displayBlack(); //Potrays a black screen for our main menu
 
+	//A Title screen is displayed until the user starts the game (left button pressed)
 	while (leftPressed() != 0)
 		{	
-	
-			printText("Crossy Seas",25,10,255,0);
-			putImage(30,30,64,61,logo,0,0);
-			printText("By Max & Jennifier",0,110,255,0);
+		 //Displays the Title screen with a logo
+		 printText("Crossy Seas",25,10,255,0);
+		 putImage(30,30,64,61,logo,0,0);
+		 printText("By Max & Jennifier",0,110,255,0);
 
-			printText("Ready to set sea", 0, 130, 255, 0);
-			printText("Left Button", 0, 140, 255, 0);
-			printText("To begin!", 0, 150, 255, 0);
+		 printText("Ready to set sea", 0, 130, 255, 0);
+		 printText("Left Button", 0, 140, 255, 0);
+		 printText("To begin!", 0, 150, 255, 0);
 
 		}
 
+		//Render Level 1 loading...
 		displayBlack();
 
 		delay(1000);
@@ -229,97 +245,109 @@ int main()
 
 		delay(1000);
 
-	uint16_t oldx = x;
-	uint16_t oldy = y;
+	uint16_t oldx = x; // Store the current x-coordinate of the player
+	uint16_t oldy = y; // Store the current y-coordinate of the player
 
-	renderGame();
+	renderGame(); // Render the initial state of the game
 	
-	delay(50);
+	delay(50); // Introduce a delay for smoother rendering
 
-	renderAssets();
+	renderAssets(); // Render game assets such as characters and symbols
 
+	//Game Loop
 	while(1)
 	{
-		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
+		hmoved = vmoved = 0; // Flags to track player movement
+		hinverted = vinverted = 0; // Flags to track player orientation
 
-		playNote(1000);	
-		delay(20);
+		playNote(1000);	// Play a note
+		delay(20); // Introduce a small delay
 
 		//Enemy Movement
 		if (enemyX > 100)
 		{
-			deltaX = -1;
+			deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
 		}
 		
 		if (enemyX < 1)
 		{
-			deltaX = 1;
+			deltaX = 1; // Move the enemy right if it's beyond x-coordinate 1
 		}
 
-		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
+		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0)); // Fill the previous enemy position with a color
 		
-		enemyX = enemyX + deltaX;
+		enemyX = enemyX + deltaX; // Update the enemy's x-coordinate
 
-		putImage(enemyX,enemyY,12,16,enemy,0,0);
+		putImage(enemyX,enemyY,12,16,enemy,0,0); // Draw the enemy at its new position
 
-		enemyInsidePlayer(enemyX,enemyY,x,y);
+		enemyInsidePlayer(enemyX,enemyY,x,y); // Check if the enemy is overlapping with the player
 
 		//Luffy Movement
 		//Deletes the original image off the spawn
 	
 		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
 		{
-			putImage(x,y,12,16,delete,0,0);
+			putImage(x,y,12,16,delete,0,0); // Delete the original player image if a movement key is pressed
 		}
 		
-
-		if (rightPressed() == 0) // right pressed
-		{					
-			if (x < 110)
-			{
-				x = x + 1;
-				hmoved = 1;
-				hinverted=0;
-			}						
+		// Handle player movement in different directions
+		if (rightPressed() == 0)
+		{	
+		 // Move the player right
+		 // Ensure that the player stays within the game boundaries
+		 if (x < 110)
+		 {
+			x = x + 1;
+			hmoved = 1;
+			hinverted=0;
+		 }						
 		}
-		if (leftPressed() == 0) // left pressed
+		if (leftPressed() == 0)
 		{			
-			
-			if (x > 10)
-			{
-				x = x - 1;
-				hmoved = 1;
-				hinverted=1;
-			}			
+		 // Move the player left
+		 // Ensure that the player stays within the game boundaries
+		 if (x > 10)
+		 {
+			x = x - 1;
+			hmoved = 1;
+			hinverted=1;
+		 }			
 		}
-		if ( downPressed() == 0) // down pressed
+		if ( downPressed() == 0)
 		{
-			if (y < 140)
-			{
-				y = y + 1;			
-				vmoved = 1;
-				vinverted = 0;
-			}
+		 // Move the player down
+		 // Ensure that the player stays within the game boundaries
+		 if (y < 140)
+		 {
+			y = y + 1;			
+			vmoved = 1;
+			vinverted = 0;
+		 }
 		}
-		if (upPressed() == 0 ) // up pressed
-		{			
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;
-				
-			}
+		if (upPressed() == 0 )
+		{	
+		 // Move the player up
+		 // Ensure that the player stays within the game boundaries
+		 if (y > 16)
+		 {
+			y = y - 1;
+			vmoved = 1;
+			vinverted = 1;
+			
+		 }
 		}
+		
+		// Similar logic for left, down, and up movements...
+
+    		// Redraw the player if there's been movement to reduce flicker
 		if ((vmoved) || (hmoved))
 		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
+			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0)); // Fill the previous player position with a color
 			
 			oldx = x;
 			oldy = y;					
-			
+
+			// Redraw the player image based on movement and orientation
 			if (hmoved)
 			{
 				if (toggle)
@@ -328,53 +356,59 @@ int main()
 					putImage(x,y,12,16,luffy3,hinverted,0);
 
 				
-				toggle = toggle ^ 1;
+				toggle = toggle ^ 1;  // Toggle between two images for animation
 			}
 			else
 			{
 				putImage(x,y,12,16,luffy4,0,hinverted);
 			}
 			
-			playerInsideEnemy(x,y,enemyX,enemyY);
+			playerInsideEnemy(x,y,enemyX,enemyY); // Check if the player is overlapping with the enemy
 
 			if (playerInsideMeat(x,y,meatX,meatY) == 1)
 			{
-				displayBlack();
+				displayBlack(); // Display a black screen
 				delay(50);
-				displayLevelCompleted();
+				displayLevelCompleted(); // Display a level completed message
 				delay(50);	
-				levelCompleted();
+				levelCompleted(); // Perform actions for completing a level
 			}
 			
 			
 			if (hitOcean(x,y,12,16) == 1)
 			{
-				gameOver();
+				gameOver(); // Perform actions for the game over scenario
 			}
 			
 		}		
-		delay(50);
+		delay(50); // Introduce a delay before the next iteration of the game loop
 	}
 	return 0;
-}
+} //end main
+
+// Function to set up the system, including clock, SysTick, I/O, and timer
 void setUpSystem()
 {
-	initClock();
-	initSysTick();
-	setupIO();
-	initTimer();
+	initClock(); // Initialize the clock settings
+	initSysTick(); // Initialize the SysTick timer
+	setupIO(); // Set up input/output configurations
+	initTimer(); // Set up input/output configurations
 }
+
+// Function to initialize the SysTick timer
 void initSysTick(void)
 {
-	SysTick->LOAD = 48000;
-	SysTick->CTRL = 7;
-	SysTick->VAL = 10;
-	__asm(" cpsie i "); // enable interrupts
+	SysTick->LOAD = 48000; // Set the reload value for a 1ms time interval (assuming a 48MHz clock)
+	SysTick->CTRL = 7; // Enable SysTick with the system clock and interrupts
+	SysTick->VAL = 10; // Set an initial value to start counting
+	__asm(" cpsie i "); // enable interrupts globally
 }
+// SysTick interrupt handler function
 void SysTick_Handler(void)
 {
-	milliseconds++;
+	milliseconds++; // Increment a variable to track milliseconds
 }
+
 void initClock(void)
 {
 // This is potentially a dangerous function as it could
