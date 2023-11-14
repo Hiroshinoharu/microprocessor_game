@@ -5,12 +5,19 @@
 #include "musical_notes.h"
 #include "serial.h"
 
-//Symbolic Name for the Bridge blocks
+// These are symbolic names representing the counts of different types of bridge blocks.
+// BLOCK_COUNT_TOP: Number of top blocks in the bridge
+// BLOCK_COUNT_BOTTOM: Number of bottom blocks in the bridge
+// BLOCK_COUNT_SIDE: Number of side blocks in the bridge
 # define BLOCK_COUNT_TOP 6
 # define BLOCK_COUNT_BOTTOM 7
 # define BLOCK_COUNT_SIDE 4
 
-//Basic Game Structure
+// A signature to render the game
+void setUpSystem(void);
+
+// These functions are part of the basic game structure and handle initialization,
+// display setup, system tick, delay, I/O setup, and pin configuration.
 void display_begin();
 void initClock(void);
 void initSysTick(void);
@@ -21,37 +28,40 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 
-
-//Signature to render the game's textures
+// Signature to render the game's textures
 void renderGame(void);
+
+// These functions are responsible for rendering different aspects of the game,
+// such as textures, assets, and specific levels.
 void renderAssets(void);
 void renderAssets2(void);
 void renderLevel2(void);
 void renderLevel3(void);
-void setUpSystem(void);
 
-//Button Movement 
+// These functions handle various game-related actions and conditions, such as game over, completing levels,
+// checking player positions relative to enemies and objects, and generating additional game levels.
+
+// These functions are used to check whether certain movement buttons (left, right, up, down) are pressed.
 int leftPressed(void);
 int rightPressed(void);
 int upPressed(void);
 int downPressed(void);
 
-
-//Signature for the Game Over screen
+// Signature for the Game Over screen
 void gameOver(void);
 
-//Displays a black screen
+// Displays a black screen
 void displayBlack(void);
 
-//Signature to display the level completed
+// Signature to display the level completed screen
 void displayLevelCompleted(void);
 void displayLevel2Completed(void);
 
-//Signature for the Level Completed Screen
+// Signature for the Level Completed Screen
 void levelCompleted(void);
 void level2Completed(void);
 
-//Signature to display if the player finishes the game
+// Signature to display if the player finishes the game
 void gameCompleted(void);
 
 //Siganture to check if the player inside the enemy.
@@ -60,16 +70,17 @@ void playerInsideEnemy(uint16_t,uint16_t,uint16_t,uint16_t);
 //Signature to check if the player is inside the meat
 int playerInsideMeat(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to check if enemy hit player
+// Signature to check if enemy hit player
 void enemyInsidePlayer(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to check if the player hits the ocean
+// Signature to check if the player hits the ocean
 int hitOcean(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to generate a second & third level
+// Signature to generate a second & third level
 void level2(void);
 void level3(void);
 
+// A volatile variable to store the elapsed time in milliseconds
 volatile uint32_t milliseconds;
 
 //Barriers are set to the top-left corner 
@@ -84,24 +95,27 @@ const uint16_t barrier2Y[BLOCK_COUNT_TOP] = {0,10,20,30,40,50};
 const uint16_t barrier3X[BLOCK_COUNT_BOTTOM] = {30,30,30,30,30,30,30};
 const uint16_t barrier3Y[BLOCK_COUNT_BOTTOM] = {145,135,125,115,105,95,85};
 
-//Barriers are set to the bottom-right of the corner
+//Barriers are set to the bottom-right of the corner 
 const uint16_t barrier4X[BLOCK_COUNT_BOTTOM] = {80,80,80,80,80,80,80};
 const uint16_t barrier4Y[BLOCK_COUNT_BOTTOM] = {145,135,125,115,105,95,85};
 
-//Barrier set with the side bridge
+//Barrier set with the side bridge top-left corner
 const uint16_t side_barrierX[BLOCK_COUNT_SIDE] = {0,10,20,30};
 const uint16_t side_barrierY[BLOCK_COUNT_SIDE] = {85,85,85,85};
 
+//Barrier set with the side bridge top-right corner
 const uint16_t side_barrier2X[BLOCK_COUNT_SIDE] = {0,10,20,30};
 const uint16_t side_barrier2Y[BLOCK_COUNT_SIDE] = {49,49,49,49};
 
+//Barrier set with the side bridge bottom-left corner
 const uint16_t side_barrier3X[BLOCK_COUNT_SIDE] = {80,90,100,110};
 const uint16_t side_barrier3Y[BLOCK_COUNT_SIDE] = {85,85,85,85};
 
+//Barrier set with the side bridge bottom-right corner
 const uint16_t side_barrier4X[BLOCK_COUNT_SIDE] = {80,90,100,110};
 const uint16_t side_barrier4Y[BLOCK_COUNT_SIDE] = {49,49,49,49};
 
-
+//All assests are generated including our main character luffy, the enemy, the meat object and all the symbols used around the game and assets delete
 const uint16_t luffy1[]=
 {
 	27649,27649,27649,16142,16142,16142,16142,16142,16142,27649,27649,27649,27649,27649,27649,40224,40224,40224,40224,40224,40224,27649,27649,27649,27649,27649,16142,16142,16142,16142,16142,16142,16142,16142,27649,27649,27649,27649,27649,51505,51505,51505,51505,51505,51505,27649,27649,27649,27649,27649,27649,65535,0,40375,40375,0,65535,27649,27649,27649,27649,27649,27649,40375,40375,40375,40375,40375,40375,27649,27649,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,40375,40375,40224,40224,40375,40375,40224,40224,40375,40375,27649,27649,27649,27649,16621,16621,16621,16621,16621,16621,27649,27649,27649,27649,27649,27649,16621,16621,16621,16621,16621,16621,27649,27649,27649,27649,27649,27649,65535,65535,27649,27649,65535,65535,27649,27649,27649,27649,27649,27649,40375,40375,27649,27649,40375,40375,27649,27649,27649,27649,27649,27649,22355,22355,27649,27649,22355,22355,27649,27649,27649,
@@ -162,11 +176,9 @@ const uint16_t waves[] =
 	59132,59132,59132,59132,59132,59132,59132,59132,59132,65535,65535,59132,65535,59132,59132,65535,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,59132,
 };
 
-//Global Variables for our background
+//Global Variables for our waves background
 uint16_t waveX = 0;
 uint16_t wavesY = 0;
-
-
 
 //Global Variables for the game
 //Variables declared for our main character Luffy
@@ -178,7 +190,7 @@ int vmoved = 0;
 uint16_t x = 55;
 uint16_t y = 140;
 
-//Variables for enemies
+//Variables for the enemies co-ordinates
 uint16_t enemyX = 55;
 uint16_t enemyY = 65;
 
@@ -188,193 +200,209 @@ uint16_t enemy2Y = 100;
 uint16_t enemy3X = 55;
 uint16_t enemy3Y = 120;
 
-//Enemy Movement
+//Gloabl variables for enemy movement
 int deltaX = 1;
 int delta2X = -1;
 int delta3X = 1;
 
 
-//Variables for the meat
+//Variables for the meat co-ordinates
 uint16_t meatX = 55;
 uint16_t meatY = 20;
 
 int main()
 {
-	setUpSystem();
-
-	displayBlack();
-
-	while (leftPressed() != 0)
-		{	
 	
-			printText("Crossy Seas",25,10,255,0);
-			putImage(30,30,64,61,logo,0,0);
-			printText("By Max & Jennifier",0,110,255,0);
+   setUpSystem(); //Calls the sytem setup yo render the game
+   displayBlack(); //Potrays a black screen for our main menu
 
-			printText("Ready to set sea", 0, 130, 255, 0);
-			printText("Left Button", 0, 140, 255, 0);
-			printText("To begin!", 0, 150, 255, 0);
+   //A Title screen is displayed until the user starts the game (left button pressed)
+   while (leftPressed() != 0)
+   {	
+     //Displays the Title screen with a logo
+     printText("Crossy Seas",25,10,255,0);
+     putImage(30,30,64,61,logo,0,0);
+     printText("By Max & Jennifier",0,110,255,0);
 
-		}
+     printText("Ready to set sea", 0, 130, 255, 0);
+     printText("Left Button", 0, 140, 255, 0);
+     printText("To begin!", 0, 150, 255, 0);
+   }
 
-		displayBlack();
+   //Render Level 1 loading...
+   displayBlack();
 
-		delay(1000);
+   delay(1000);
 
-		printText("Crossy Seas",25,10,255,0);
-		putImage(30,30,64,61,logo,0,0);
+   printText("Crossy Seas",25,10,255,0);
+   putImage(30,30,64,61,logo,0,0);
 
-		printText("Level 1",0,130,255,0);
-		printText("Loading....",0,140,255,0);
+   printText("Level 1",0,130,255,0);
+   printText("Loading....",0,140,255,0);
 
-		delay(1000);
+   delay(1000);
 
-	uint16_t oldx = x;
-	uint16_t oldy = y;
+   uint16_t oldx = x; // Store the current x-coordinate of the player
+   uint16_t oldy = y; // Store the current y-coordinate of the player
 
-	renderGame();
+   renderGame(); // Render the initial state of the game
+
+   delay(50); // Introduce a delay for smoother rendering
+
+   renderAssets(); // Render game assets such as characters and symbols
+
+    //Game Loop
+    while(1)
+    {
+	hmoved = vmoved = 0; // Flags to track player movement
+	hinverted = vinverted = 0; // Flags to track player orientation
+
+	playNote(1000);	// Play a note
+	delay(20); // Introduce a small delay
 	
-	delay(50);
-
-	renderAssets();
-
-	while(1)
+	//Enemy Movement
+	if (enemyX > 100)
 	{
-		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
-
-		playNote(1000);	
-		delay(20);
-
-		//Enemy Movement
-		if (enemyX > 100)
-		{
-			deltaX = -1;
-		}
-		
-		if (enemyX < 1)
-		{
-			deltaX = 1;
-		}
-
-		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
-		
-		enemyX = enemyX + deltaX;
-
-		putImage(enemyX,enemyY,12,16,enemy,0,0);
-
-		enemyInsidePlayer(enemyX,enemyY,x,y);
-
-		//Luffy Movement
-		//Deletes the original image off the spawn
+		deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
+	}
 	
-		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
-		{
-			putImage(x,y,12,16,delete,0,0);
-		}
+	if (enemyX < 1)
+	{
+		deltaX = 1; // Move the enemy right if it's beyond x-coordinate 1
+	}
+
+	fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0)); // Fill the previous enemy position with a color
+	
+	enemyX = enemyX + deltaX; // Update the enemy's x-coordinate
+
+	putImage(enemyX,enemyY,12,16,enemy,0,0); // Draw the enemy at its new position
+
+	enemyInsidePlayer(enemyX,enemyY,x,y); // Check if the enemy is overlapping with the player
+
+	//Luffy Movement
+	//Deletes the original image off the spawn
+
+	if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
+	{
+	  putImage(x,y,12,16,delete,0,0); // Delete the original player image if a movement key is pressed
+	}
+	
+	// Handle player movement in different directions
+	if (rightPressed() == 0)
+	{	
+	 // Move the player right
+	 // Ensure that the player stays within the game boundaries
+	 if (x < 110)
+	 {
+	  x = x + 1;
+	  hmoved = 1;
+	  hinverted=0;
+	 }						
+	}
+	if (leftPressed() == 0)
+	{			
+	 // Move the player left
+	 // Ensure that the player stays within the game boundaries
+	 if (x > 10)
+	 {
+	   x = x - 1;
+	   hmoved = 1;
+	   hinverted=1;
+	 }			
+	}
+	if ( downPressed() == 0)
+	{
+	 // Move the player down
+	 // Ensure that the player stays within the game boundaries
+	 if (y < 140)
+	 {
+	   y = y + 1;			
+	   vmoved = 1;
+	   vinverted = 0;
+	 }
+	}
+	if (upPressed() == 0 )
+	{	
+	 // Move the player up
+	 // Ensure that the player stays within the game boundaries
+	 if (y > 16)
+	 {
+	   y = y - 1;
+	   vmoved = 1;
+	   vinverted = 1;	
+	 }
+	}
+	
+	// Similar logic for left, down, and up movements...
+
+	// Redraw the player if there's been movement to reduce flicker
+	if ((vmoved) || (hmoved))
+	{
+	 fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0)); // Fill the previous player position with a color
+	
+	 oldx = x;
+	 oldy = y;					
+
+	  // Redraw the player image based on movement and orientation
+	  if (hmoved)
+	  {
+	    if (toggle)
+		putImage(x,y,12,16,luffy2,hinverted,0);
+	    else
+		putImage(x,y,12,16,luffy3,hinverted,0);
 		
+	   toggle = toggle ^ 1;  // Toggle between two images for animation
+	  }
+	  else
+	  {
+	    putImage(x,y,12,16,luffy4,0,hinverted);
+	  }
+	
+	  playerInsideEnemy(x,y,enemyX,enemyY); // Check if the player is overlapping with the enemy
 
-		if (rightPressed() == 0) // right pressed
-		{					
-			if (x < 110)
-			{
-				x = x + 1;
-				hmoved = 1;
-				hinverted=0;
-			}						
-		}
-		if (leftPressed() == 0) // left pressed
-		{			
-			
-			if (x > 10)
-			{
-				x = x - 1;
-				hmoved = 1;
-				hinverted=1;
-			}			
-		}
-		if ( downPressed() == 0) // down pressed
-		{
-			if (y < 140)
-			{
-				y = y + 1;			
-				vmoved = 1;
-				vinverted = 0;
-			}
-		}
-		if (upPressed() == 0 ) // up pressed
-		{			
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;
-				
-			}
-		}
-		if ((vmoved) || (hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
-			
-			oldx = x;
-			oldy = y;					
-			
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,luffy2,hinverted,0);
-				else
-					putImage(x,y,12,16,luffy3,hinverted,0);
-
-				
-				toggle = toggle ^ 1;
-			}
-			else
-			{
-				putImage(x,y,12,16,luffy4,0,hinverted);
-			}
-			
-			playerInsideEnemy(x,y,enemyX,enemyY);
-
-			if (playerInsideMeat(x,y,meatX,meatY) == 1)
-			{
-				displayBlack();
-				delay(50);
-				displayLevelCompleted();
-				delay(50);	
-				levelCompleted();
-			}
-			
-			
-			if (hitOcean(x,y,12,16) == 1)
-			{
-				gameOver();
-			}
-			
-		}		
+	  if (playerInsideMeat(x,y,meatX,meatY) == 1)
+	   {
+		displayBlack(); // Display a black screen
 		delay(50);
+		displayLevelCompleted(); // Display a level completed message
+		delay(50);	
+		levelCompleted(); // Perform actions for completing a level
+	   }
+
+	  if (hitOcean(x,y,12,16) == 1)
+	  {
+	   gameOver(); // Displays a game over screen
+	  }
+	
+	}		
+	 delay(50); // Introduce a delay before the next iteration of the game loop
 	}
 	return 0;
-}
+} //end main
+
+// Function to set up the system, including clock, SysTick, I/O, and timer
 void setUpSystem()
 {
-	initClock();
-	initSysTick();
-	setupIO();
-	initTimer();
+	initClock(); // Initialize the clock settings
+	initSysTick(); // Initialize the SysTick timer
+	setupIO(); // Set up input/output configurations
+	initTimer(); // Set up input/output configurations
 }
+
+// Function to initialize the SysTick timer
 void initSysTick(void)
 {
-	SysTick->LOAD = 48000;
-	SysTick->CTRL = 7;
-	SysTick->VAL = 10;
-	__asm(" cpsie i "); // enable interrupts
+	SysTick->LOAD = 48000; // Set the reload value for a 1ms time interval (assuming a 48MHz clock)
+	SysTick->CTRL = 7; // Enable SysTick with the system clock and interrupts
+	SysTick->VAL = 10; // Set an initial value to start counting
+	__asm(" cpsie i "); // enable interrupts globally
 }
+// SysTick interrupt handler function
 void SysTick_Handler(void)
 {
-	milliseconds++;
+	milliseconds++; // Increment a variable to track milliseconds
 }
+// Intiaalise clock function
 void initClock(void)
 {
 // This is potentially a dangerous function as it could
@@ -405,7 +433,7 @@ void initClock(void)
 }
 void delay(volatile uint32_t dly)
 {
-	uint32_t end_time = dly + milliseconds;
+	uint32_t end_time = dly + milliseconds; // adds the delays and the milliseconds together
 	while(milliseconds != end_time)
 		__asm(" wfi "); // sleep
 }
@@ -440,11 +468,13 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 	}
 	return rvalue;
 }
-
+// Sets up input/output devices
 void setupIO()
 {
 	RCC->AHBENR |= (1 << 18) + (1 << 17); // enable Ports A and B
-	display_begin();
+	display_begin(); // Turns on the display
+
+	//Enables breadboard
 	pinMode(GPIOB,4,0);
 	pinMode(GPIOB,5,0);
 	pinMode(GPIOA,8,0);
@@ -454,838 +484,879 @@ void setupIO()
 	enablePullUp(GPIOA,11);
 	enablePullUp(GPIOA,8);
 }
-
+//Function to dectect left button presses
 int leftPressed()
 {
 	if ((GPIOB->IDR & (1 << 5))==0)// left pressed
 	{
+		//Returns 0 if the left button is pressed
 		return 0;
 	}
 	else
 	{
+		//Else returns 1 
 		return 1;
 	}
 
 }
-
+//Function to dectect right button presses
 int rightPressed()
 {
 	if ((GPIOB->IDR & (1 << 4))==0)// right pressed
 	{
+		//Returns 0 if the left button is pressed
 		return 0;
 	}
 	else
 	{
+		//Else returns 1 (false)
 		return 1;
 	}
 }
-
+//Function to dectect down button pressed button
 int downPressed()
 {
 	if ((GPIOA->IDR & (1 << 11)) == 0)// down pressed
 	{
+		//Returns 0 if the left button is pressed
 		return 0;
 	}
 	else
 	{
+		//Else returns 1 (false)
 		return 1;
 	}	
 }
-
+//Function to dectect up button pressed button
 int upPressed()
 {
 	if ((GPIOA->IDR & (1 << 8)) == 0)// up pressed
 	{
+		//Returns 0 if the left button is pressed
 		return 0;
 	}
 	else
 	{
+		//Else returns 1 (false)
 		return 1;
 	}		
 }
-
+// Function that displays a game over screen whenever the player loses the game
 void gameOver()
 {
-	displayBlack();
-	
+	displayBlack(); // Displays a black screen
+
+	// Displays an infinite loop to keep the game over screen visible
 	while (1)
 	{
-		printTextX2(" Game Over ",0,0,255,0);
-		putImage(30,40,64,67,skull,0,0);
+		printTextX2(" Game Over ",0,0,255,0); // Displays text to the user
+		putImage(30,40,64,67,skull,0,0); //Displays a skull 
 
-		printText("Better Luck",0,140,255,0);
-		printText("Next Time!",0,150,255,0);
+		printText("Better Luck",0,140,255,0); // Displays "Better Luck" at coordinates (0,140)
+		printText("Next Time!",0,150,255,0); // Displays the text "Next Time!" at coordinates (0, 150)
 	}	
 }
 
+// Function to check if an enemy is inside the player's area
 void enemyInsidePlayer(uint16_t enemyX,uint16_t enemyY,uint16_t x ,uint16_t y)
 {
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(x,y,12,16,enemyX,enemyY) || isInside(x,y,12,16,enemyX+12,enemyY) || isInside(x,y,12,16,enemyX,enemyY+16) || isInside(x,y,12,16,enemyX+12,enemyY+16) )
 	{
-		playNote(1000);
-		gameOver();
+		playNote(1000); // Play a note
+		gameOver(); // Call the game over function when there's an overlap
 	}
 }
 
 void playerInsideEnemy(uint16_t x,uint16_t y,uint16_t enemyX ,uint16_t enemyY)
 {
-	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
+	// Now check for an overlap by checking to see if ANY of the 4 corners of the enemy are within the player area
 	if (isInside(enemyX,enemyY,12,16,x,y) || isInside(enemyX,enemyY,12,16,x+12,y) || isInside(enemyX,enemyY,12,16,x,y+16) || isInside(enemyX,enemyY,12,16,x+12,y+16) )
 	{
-		gameOver();
+		gameOver(); // Call the game over function when there's an overlap
 	}
 }
 
 int playerInsideMeat(uint16_t x,uint16_t y,uint16_t meatX,uint16_t meatY)
 {	
-	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
+	// Now check for an overlap by checking to see if ANY of the 4 corners of meat are within the player 
 	if (isInside(meatX,meatY,12,16,x,y) || isInside(meatX,meatY,12,16,x+12,y) || isInside(meatX,meatY,12,16,x,y+16) || isInside(meatX,meatY,12,16,x+12,y+16) )
 	{
-		return 1;
+		return 1; // Return 1 to indicate that there is an overlap (player is inside the meat area)
 	}
-
-	return 0;
+	return 0; // Return 0 to indicate no overlap
 }
 
+// Function to display a black screen with specific rectangles filled in a graphical display
 void displayBlack(void)
 {
-	fillRectangle(0,0,128,160,0);
-	fillRectangle(40,0,45,179,0);
-	fillRectangle(0,65,128,20,0);
+	fillRectangle(0,0,128,160,0); // Fill the entire screen with black color
+	fillRectangle(40,0,45,179,0); // Fill a vertical rectangle on the left side of the screen to create a border effect
+	fillRectangle(0,65,128,20,0); // Fill a horizontal rectangle in the middle of the screen to create a border effect
 }
-
+// Function to display a level completed message and prompt the user to press the right button to proceed to the next level
 void displayLevelCompleted(void)
 {
+	// Wait for the right button to be pressed before displaying the level completion message
+	while (rightPressed() != 0)
+	{
+	
+	// Display the level completion message and instructions
+	 printText("Level Completed",8,10,255,0);
+	 printText("Right Button", 8, 20, 255, 0);
+	 printText("To begin", 8, 30, 255, 0);
+	 printText("Next level!", 8, 40, 255, 0);
 
-		while (rightPressed() != 0)
-		{
-			printText("Level Completed",8,10,255,0);
-			printText("Right Button", 8, 20, 255, 0);
-			printText("To begin", 8, 30, 255, 0);
-			printText("Next level!", 8, 40, 255, 0);
+	 // Display a smiley image on the screen
+	 putImage(45,70,32,32,smile,0,0);
+	}
 
+	// Delay for a short period to ensure smooth transition
+	delay(50);
 
-			putImage(45,70,32,32,smile,0,0);
-		}
-
-		delay(50);
-
+	// Call the function to proceed to the next level
 	levelCompleted();
-
 }
 
 void displayLevel2Completed(void)
 {
+	// Wait for the right button to be pressed before displaying the level completion message
+	while (rightPressed() != 0)
+	{
+	// Display the level completion message and instructions
+	 printText("Level 2 Completed",8,10,255,0);
+	 printText("Right Button", 8, 20, 255, 0);
+	 printText("To begin", 8, 30, 255, 0);
+	 printText("Next level!", 8, 40, 255, 0);
 
-		while (rightPressed() != 0)
-		{
-			printText("Level 2 Completed",8,10,255,0);
-			printText("Right Button", 8, 20, 255, 0);
-			printText("To begin", 8, 30, 255, 0);
-			printText("Next level!", 8, 40, 255, 0);
+	 // Display a smiley image on the screen
+	 putImage(45,70,32,32,smile,0,0);
+	}
 
+	// Delay for a short period to ensure smooth transition
+	delay(50);
 
-			putImage(45,70,32,32,smile,0,0);
-		}
-
-		delay(50);
-
+	// Call the function to proceed to the next level
 	level2Completed();
-
 }
-
+// Function to handle the completion of a level
 void levelCompleted(void)
 {
-	//Variable to continue
-	int continue_game = 0;
+    // Variable to continue
+    int continue_game = 0;
 
-	while (continue_game == 0)
-		{
-			fillRectangle(0,0,128,160,0);
-			fillRectangle(40,0,45,179,0);
-			fillRectangle(0,65,128,20,0);
+    while (continue_game == 0)
+    {
+        fillRectangle(0, 0, 128, 160, 0);
+        fillRectangle(40, 0, 45, 179, 0);
+        fillRectangle(0, 65, 128, 20, 0);
 
-            if (rightPressed() == 0) // right pressed
-            {    
-            	continue_game = 1;    
-                
-				while (1)
-                {
-					printText("Crossy Seas",25,10,255,0);
-					putImage(30,30,64,61,logo,0,0);
-					
-					delay(1000);
+        // Check if the right button is pressed
+        if (rightPressed() == 0)
+        {
+            continue_game = 1;
 
-					printText("Level 2",0,130,255,0);
-					printText("Loading....",0,150,255,0);
+            // Display the "Crossy Seas" title and logo
+            while (1)
+            {
+                printText("Crossy Seas", 25, 10, 255, 0);
+                putImage(30, 30, 64, 61, logo, 0, 0);
 
-					delay(1000);
-					level2();
-					delay(1000);
-                } 
-			}
-		}
+                delay(1000);
+
+                // Display loading message for Level 2
+                printText("Level 2", 0, 130, 255, 0);
+                printText("Loading....", 0, 150, 255, 0);
+
+                delay(1000);
+                level2(); // Call function to initiate Level 2
+                delay(1000);
+            }
+        }
+    }
 }
 
 void level2Completed(void)
 {
 	//Variable to continue
 	int continue_game = 0;
-
+	
 	while (continue_game == 0)
-		{
-			fillRectangle(0,0,128,160,0);
-			fillRectangle(40,0,45,179,0);
-			fillRectangle(0,65,128,20,0);
-
-            if (rightPressed() == 0) // right pressed
-            {    
-            	continue_game = 1;    
-                
-				while (1)
-                {
-					printText("Crossy Seas",25,10,255,0);
-					putImage(30,30,64,61,logo,0,0);
-					
-					delay(1000);
-
-					printText("Level 3",0,130,255,0);
-					printText("Loading....",0,150,255,0);
-
-					delay(1000);
-					level3();
-					delay(1000);
-                } 
-			}
-		}
+	{
+	 fillRectangle(0,0,128,160,0);
+	 fillRectangle(40,0,45,179,0);
+	 fillRectangle(0,65,128,20,0);
+	
+	// Check if the right button is pressed
+	 if (rightPressed() == 0)
+	 {    
+	    continue_game = 1;    
+	   
+	    // Display the "Crossy Seas" title and logo     
+	    while (1)
+	    {
+	      printText("Crossy Seas",25,10,255,0);
+	      putImage(30,30,64,61,logo,0,0);
+	
+	      delay(1000);
+	
+	      // Display loading message for Level 3
+	      printText("Level 3",0,130,255,0);
+	      printText("Loading....",0,150,255,0);
+	
+	      delay(1000);
+	      level3(); // Call function to initiate Level 3
+	      delay(1000);
+	    } 
+	 }
+      }
 }
-
+// Function to handle the completion of the entire game
 void gameCompleted(void)
 {
-	displayBlack();
-	
-	while (1)
-	{
-		printText("Congradulations!",6,10,255,0);
-		printText("You completed", 6, 20, 255, 0);
-		printText("Crossy Seas", 6, 30, 255, 0);
-		printText("By Max & Jennifer", 6, 40, 255, 0);
+   // Display a black screen to prepare for the game completion message
+   displayBlack();
 
-		putImage(30,70,64,61,logo,0,0);
-	}		
+   // Infinite loop to continuously display the game completion message
+   while (1)
+   {
+     // Display various lines of text congratulating the player for completing the game
+     printText("Congradulations!",6,10,255,0);
+     printText("You completed", 6, 20, 255, 0);
+     printText("Crossy Seas", 6, 30, 255, 0);
+     printText("By Max & Jennifer", 6, 40, 255, 0);
+
+     // Display the game logo image on the screen
+     putImage(30,70,64,61,logo,0,0);
+   }		
 }
 
+// Function to handle the second level of the game
 void level2(void)
 {
 
 	delay(1000);
-	
+
+	// Initialize player coordinates
 	x = 55;
 	y = 140;
 
-	//Variables for enemy
-
+	// Variables for saving previous player position
 	uint16_t oldx = x;
 	uint16_t oldy = y;
 
+	 // Render the second level environment and assets
 	renderLevel2();
 	delay(1000);
 	renderAssets2();
 	delay(1000);
-	
 
 	while (1)
 	{
-		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
+	 // Reset movement flags
+	 hmoved = vmoved = 0;
+	 hinverted = vinverted = 0;
 
-		//Enemy Movement
-		if (enemyX > 100)
-		{
-			deltaX = -1;
-		}
-		if (enemy2X > 100)
-		{
-			delta2X = 1;
-		}
-		if (enemyX < 1)
-		{
-			deltaX = 1;
-		}
+	 //Enemy Movement
+	 if (enemyX > 100)
+	 {
+	   deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
+	 }
+	 if (enemy2X > 100)
+	 {
+	   delta2X = 1; // Move the enemy right if it's beyond x-coordinate 1
+	 }
+	 if (enemyX < 1)
+	 {
+	   deltaX = 1; // Move the enemy left if it's beyond x-coordinate 100
+	 }
+	 if (enemy2X < 1)
+	 {
+	   delta2X = -1; // Move the enemy right if it's beyond x-coordinate 1
+	 }
 
-		if (enemy2X < 1)
-		{
-			delta2X = -1;
-		}
-
-		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy2X,enemy2Y,12,16,RGBToWord(102,51,0));
-		
-		enemyX = enemyX + deltaX;
-		enemy2X = enemy2X - delta2X;
-
-		putImage(enemyX,enemyY,12,16,enemy,0,0);
-		putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
-
-
-		enemyInsidePlayer(enemyX,enemyY,x,y);
-		enemyInsidePlayer(enemy2X,enemy2Y,x,y);
-
-
-		//Luffy Movement
-		//Deletes the original image off the spawn
+	 // Draw enemies at their new positions
+	 fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
+	 fillRectangle(enemy2X,enemy2Y,12,16,RGBToWord(102,51,0));
 	
-		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
-		{
-			putImage(x,y,12,16,delete,0,0);
-		}
-		
+	 enemyX = enemyX + deltaX; //Enemy 1 moves right
+	 enemy2X = enemy2X - delta2X; //Enemy 2 moves left
 
-		if (rightPressed() == 0) // right pressed
-		{					
-			if (x < 110)
-			{
-				x = x + 1;
-				hmoved = 1;
-				hinverted=0;
-			}						
-		}
-		if (leftPressed() == 0) // left pressed
-		{			
-			
-			if (x > 10)
-			{
-				x = x - 1;
-				hmoved = 1;
-				hinverted=1;
-			}			
-		}
-		if ( downPressed() == 0) // down pressed
-		{
-			if (y < 140)
-			{
-				y = y + 1;			
-				vmoved = 1;
-				vinverted = 0;
-			}
-		}
-		if (upPressed() == 0 ) // up pressed
-		{			
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;	
-			}
-		}
-		if ((vmoved) || (hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
-			
-			oldx = x;
-			oldy = y;					
-			
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,luffy2,hinverted,0);
-				else
-					putImage(x,y,12,16,luffy3,hinverted,0);
+	 putImage(enemyX,enemyY,12,16,enemy,0,0);
+	 putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
 
-				
-				toggle = toggle ^ 1;
-			}
-			else
-			{
-				putImage(x,y,12,16,luffy4,0,hinverted);
-			}
-						
-			if (playerInsideMeat(x,y,meatX,meatY) == 1)
-			{
-				displayBlack();
-				delay(50);
-				displayLevel2Completed();
-				delay(50);	
-				level2Completed();
-			}
-			
-			if (hitOcean(x,y,12,16) == 1)
-			{
-				gameOver();
-			}
-			
-		}		
-		delay(50);
+	 // Check if player collides with enemies
+	 enemyInsidePlayer(enemyX,enemyY,x,y);
+	 enemyInsidePlayer(enemy2X,enemy2Y,x,y);
+
+
+	 //Luffy Movement
+	 //Deletes the original image off the spawn
+
+	 if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
+	 {
+	   putImage(x,y,12,16,delete,0,0);
+	 }
+	
+	// Handle Right Movement
+	if (rightPressed() == 0)
+	{
+	    // Check if within the right boundary
+	    if (x < 110)
+	    {
+	     x = x + 1; // Move right
+	     hmoved = 1; // Set horizontal movement flag
+	     hinverted=0; // Set horizontal inversion flag
+	    }						
 	}
+	// Handle left Movement
+	if (leftPressed() == 0)
+	{
+	    // Check if within the left boundary
+	    if (x > 10)
+	    {
+	     x = x - 1; // Move right
+	     hmoved = 1; // Set horizontal movement flag
+	     hinverted=1; // Set horizontal inversion flag
+	   }			
+	}
+	// Handle down Movement
+	if ( downPressed() == 0)
+	{
+	   if (y < 140)
+	   {
+	     // Check if within the bottom boundary
+	     y = y + 1;	// Move down		
+	     vmoved = 1; // Set horizontal movement flag
+	     vinverted = 0; // Set horizontal inversion flag
+	   }
+	}
+	// Handle up Movement
+	if (upPressed() == 0 ) 
+	{
+	  
+	  if (y > 16)
+	  {
+	    // Check if within the top boundary
+	    y = y - 1; // Move up
+	    vmoved = 1; // Set horizontal movement flag
+	    vinverted = 1; // Set horizontal inversion flag
+	  }
+	}
+	// Redraw player if there has been movement
+	if ((vmoved) || (hmoved))
+	{
+	  // only redraw if there has been some movement (reduces flicker)
+	  fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
+	
+	  oldx = x;
+	  oldy = y;					
+
+	  // Draw the player based on the movement direction
+	  if (hmoved)
+	  {
+	    if (toggle)
+		putImage(x,y,12,16,luffy2,hinverted,0);
+	    else
+		putImage(x,y,12,16,luffy3,hinverted,0);
+		
+	    toggle = toggle ^ 1; // Toggle for animation effect
+	  }
+	  else
+	  {
+	    putImage(x,y,12,16,luffy4,0,hinverted);
+	  }
+	
+	   // Check for collisions and perform actions accordingly			
+	  if (playerInsideMeat(x,y,meatX,meatY) == 1)
+	  {
+		// Player collected meat
+		displayBlack();
+		delay(50);
+		displayLevel2Completed();
+		delay(50);	
+		level2Completed();
+	 }
+	
+	 if (hitOcean(x,y,12,16) == 1)
+	  {
+	   gameOver(); // Player touched the ocean
+	  }
+			
+	}		
+	delay(50);
+    }
 }
 
 void level3(void)
 {
 
 	delay(1000);
-	
+
+	// Initialize player coordinates
 	x = 55;
 	y = 140;
 
-	//Variables for enemy
-	enemyY = 40;
-
-	enemy2Y = 80;
-
-	enemy3Y = 120;
-
+	 // Variables for saving previous player position
 	uint16_t oldx = x;
 	uint16_t oldy = y;
 
+	// Render the 3rd level environment and assets
 	renderLevel3();
 	delay(1000);
 	renderAssets2();
 	delay(1000);
 	
-
 	while (1)
 	{
-		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
+	  // Reset movement flags
+	  hmoved = vmoved = 0;
+	  hinverted = vinverted = 0;
 
-		//Enemy Movement
-		if (enemyX > 100)
-		{
-			deltaX = -1;
-		}
-		if (enemy2X > 100)
-		{
-			delta2X = 1;
-		}
-		if (enemy3X > 100)
-		{
-			delta3X = -1;
-		}
-		if (enemyX < 1)
-		{
-			deltaX = 1;
-		}
-		if (enemy2X < 1)
-		{
-			delta2X = -1;
-		}
-		if (enemy3X < 1)
-		{
-			delta3X = 1;
-		}
+	  //Enemy Movement
+	  if (enemyX > 100)
+	  {
+		deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
+	  }
+	  if (enemy2X > 100)
+	  {
+		delta2X = 1; // Move the enemy right if it's beyond x-coordinate 100
+	  }
+	  if (enemy3X > 100)
+	  {
+		delta3X = -1; // Move the enemy left if it's beyond x-coordinate 100
+	  }
+	  if (enemyX < 1)
+	  {
+		deltaX = 1; // Move the enemy right if it's beyond x-coordinate 1
+	  }
+	  if (enemy2X < 1)
+	  {
+		delta2X = -1; // Move the enemy left if it's beyond x-coordinate 1
+	  }
+	  if (enemy3X < 1)
+	  {
+		delta3X = 1; // Move the enemy right if it's beyond x-coordinate 100
+	  }
 
-		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy2X,enemy2Y,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy3X,enemy3Y,12,16,RGBToWord(102,51,0));
+	  // Draw enemies at their new positions
+	  fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
+	  fillRectangle(enemy2X,enemy2Y,12,16,RGBToWord(102,51,0));
+	  fillRectangle(enemy3X,enemy3Y,12,16,RGBToWord(102,51,0));
 
-		
-		enemyX = enemyX + deltaX;
-		enemy2X = enemy2X - delta2X;
-		enemy3X = enemy3X + delta3X;
+	  //Co-ordinates changing 
+	  enemyX = enemyX + deltaX;
+	  enemy2X = enemy2X - delta2X;
+	  enemy3X = enemy3X + delta3X;
 
-		putImage(enemyX,enemyY,12,16,enemy,0,0);
-		putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
-		putImage(enemy3X,enemy3Y,12,16,enemy,0,0);
+	  putImage(enemyX,enemyY,12,16,enemy,0,0);
+	  putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
+	  putImage(enemy3X,enemy3Y,12,16,enemy,0,0);
 
-		enemyInsidePlayer(enemyX,enemyY,x,y);
-		enemyInsidePlayer(enemy2X,enemy2Y,x,y);
-		enemyInsidePlayer(enemy3X,enemy3Y,x,y);
+	  // Check if player collides with enemies
+	  enemyInsidePlayer(enemyX,enemyY,x,y);
+	  enemyInsidePlayer(enemy2X,enemy2Y,x,y);
+	  enemyInsidePlayer(enemy3X,enemy3Y,x,y);
 
 
-		//Luffy Movement
-		//Deletes the original image off the spawn
-	
-		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
-		{
-			putImage(x,y,12,16,delete,0,0);
-		}
-		
+	//Luffy Movement
+	//Deletes the original image off the spawn
 
-		if (rightPressed() == 0) // right pressed
-		{					
-			if (x < 110)
-			{
-				x = x + 1;
-				hmoved = 1;
-				hinverted=0;
-			}						
-		}
-		if (leftPressed() == 0) // left pressed
-		{			
-			
-			if (x > 10)
-			{
-				x = x - 1;
-				hmoved = 1;
-				hinverted=1;
-			}			
-		}
-		if ( downPressed() == 0) // down pressed
-		{
-			if (y < 140)
-			{
-				y = y + 1;			
-				vmoved = 1;
-				vinverted = 0;
-			}
-		}
-		if (upPressed() == 0 ) // up pressed
-		{			
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;	
-			}
-		}
-		if ((vmoved) || (hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
-			
-			oldx = x;
-			oldy = y;					
-			
-			if (hmoved)
-			{
-				if (toggle)
-					putImage(x,y,12,16,luffy2,hinverted,0);
-				else
-					putImage(x,y,12,16,luffy3,hinverted,0);
-
-				
-				toggle = toggle ^ 1;
-			}
-			else
-			{
-				putImage(x,y,12,16,luffy4,0,hinverted);
-			}
-						
-			if (playerInsideMeat(x,y,meatX,meatY) == 1)
-			{
-				displayBlack();
-				delay(50);
-				gameCompleted();
-			}
-			
-			if (hitOcean(x,y,12,16) == 1)
-			{
-				gameOver();
-			}
-			
-		}		
-		delay(50);
+	if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
+	{
+	 putImage(x,y,12,16,delete,0,0);
 	}
+	
+
+	 if (rightPressed() == 0) // right pressed
+	 {					
+	  if (x < 110)
+	  {
+	   x = x + 1;
+	   hmoved = 1;
+	   hinverted=0;
+	  }						
+	 }
+	
+	if (leftPressed() == 0) // left pressed
+	{				
+	  if (x > 10)
+	  {
+	   x = x - 1;
+	   hmoved = 1;
+	   hinverted=1;
+	  }			
+	}
+	
+	if ( downPressed() == 0) // down pressed
+	{
+	 if (y < 140)
+	 {
+	  y = y + 1;			
+	  vmoved = 1;
+	  vinverted = 0;
+	 }
+	}
+	
+	if (upPressed() == 0 ) // up pressed
+	{			
+	 if (y > 16)
+	 {
+	   y = y - 1;
+	   vmoved = 1;
+	   vinverted = 1;	
+	 }
+	}
+	
+	if ((vmoved) || (hmoved))
+	{
+	// only redraw if there has been some movement (reduces flicker)
+	fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0));
+	
+	oldx = x;
+	oldy = y;					
+	
+	if (hmoved)
+	{
+	 if (toggle)
+		putImage(x,y,12,16,luffy2,hinverted,0);
+	 else
+		putImage(x,y,12,16,luffy3,hinverted,0);
+		
+	 toggle = toggle ^ 1; // Toogles for animation effect
+	}
+	else
+	{
+	  putImage(x,y,12,16,luffy4,0,hinverted);
+	}
+				
+	 if (playerInsideMeat(x,y,meatX,meatY) == 1)
+	 {
+	   displayBlack();
+	   delay(50);
+	   gameCompleted();
+	 }
+	
+	 if (hitOcean(x,y,12,16) == 1)
+	 {
+	   gameOver();
+	  }
+		
+	}		
+      delay(50);
+    }
 }
 
+// Function to render the game background
 void renderGame()
 {
-	//Sets the background of the game
-	//The sea
-	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
+   // Sets the background of the game to represent the sea
+   fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
-	//Generate waves
-	for (int i = 0; i < 40; i++)
-	{
-		putImage(waveX,wavesY,4,8,waves,0,0);
-		
-		waveX = waveX + 4;
+   //Generate waves
+   for (int i = 0; i < 40; i++)
+   {
+     // Draw individual waves
+     putImage(waveX,wavesY,4,8,waves,0,0);
 
-		for (int j = 0; j < 80; j++)
-		{
-			putImage(waveX,wavesY,4,8,waves,0,0);
-		
-			wavesY = wavesY + 8;
-		}
-	}
+     waveX = waveX + 4; // Move to the next position along the X-axis
 
-	//Main bridge
-	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
+      for (int j = 0; j < 80; j++)
+      {
+        // Draw waves vertically for each position along the X-axis
+        putImage(waveX,wavesY,4,8,waves,0,0);
+        wavesY = wavesY + 8; // Move to the next position along the Y-axis
+     }
+   }   
 
-	//Side bridge for the enemy
-	fillRectangle(0,65,128,20,RGBToWord(102,51,0));
+   //Main bridge
+   fillRectangle(40,0,45,179,RGBToWord(102,51,0));
+
+   //Side bridge for the enemy
+   fillRectangle(0,65,128,20,RGBToWord(102,51,0));
 }
 
 void renderLevel2()
 {
-	//Sets the background of the game
-	//The sea
-	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
+   // Sets the background of the game to represent the sea
+   fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
-	//Generate waves
-	for (int i = 0; i < 70; i++)
-	{
-		putImage(waveX,wavesY,4,8,waves,0,0);
-		
-		waveX = waveX + 4;
+   //Generate waves
+   for (int i = 0; i < 70; i++)
+   {
+     // Draw individual waves
+     putImage(waveX,wavesY,4,8,waves,0,0);
+     waveX = waveX + 4; // Move to the next position along the X-axis
 
-		for (int j = 0; j < 150; j++)
-		{
-			putImage(waveX,wavesY,4,8,waves,0,0);
-		
-			wavesY = wavesY + 8;
-		}
-	}
-	
-	//Main bridge
-	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
+     for (int j = 0; j < 150; j++)
+     {
+	// Draw waves vertically for each position along the X-axis
+	putImage(waveX,wavesY,4,8,waves,0,0);
+	wavesY = wavesY + 8; // Move to the next position along the Y-axis
+     }
+   }
 
-	// 2 Side bridges for the enemy
-	fillRectangle(0,65,128,20,RGBToWord(102,51,0));
-	fillRectangle(0,100,128,20,RGBToWord(102,51,0));
+   //Main bridge
+   fillRectangle(40,0,45,179,RGBToWord(102,51,0));
 
+   // 2 Side bridges for the enemy
+   fillRectangle(0,65,128,20,RGBToWord(102,51,0));
+   fillRectangle(0,100,128,20,RGBToWord(102,51,0));
 }
 
 void renderLevel3()
 {
-	//Sets the background of the game
-	//The sea
-	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
+   // Sets the background of the game to represent the sea
+   fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
-	//Generate waves
-	for (int i = 0; i < 60; i++)
-	{
-		putImage(waveX,wavesY,4,8,waves,0,0);
-		
-		waveX = waveX + 4;
-
-		for (int j = 0; j < 150; j++)
-		{
-			putImage(waveX,wavesY,4,8,waves,0,0);
-		
-			wavesY = wavesY + 8;
-		}
-	}
+   //Generate waves
+   for (int i = 0; i < 60; i++)
+   {
+	// Draw individual waves
+	putImage(waveX,wavesY,4,8,waves,0,0);
 	
-	//Main bridge
-	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
+	waveX = waveX + 4; // Move to the next position along the X-axis
 
-	// 3 Side bridges for the enemy
-	fillRectangle(0,40,128,20,RGBToWord(102,51,0));
-	fillRectangle(0,80,128,20,RGBToWord(102,51,0));
-	fillRectangle(0,120,128,20,RGBToWord(102,51,0));
+	for (int j = 0; j < 150; j++)
+	{
+	  // Draw waves vertically for each position along the X-axis
+	  putImage(waveX,wavesY,4,8,waves,0,0);
+	  wavesY = wavesY + 8; // Move to the next position along the Y-axis
+	}
+   }
+
+   //Main bridge
+   fillRectangle(40,0,45,179,RGBToWord(102,51,0));
+
+   // 3 Side bridges for the enemy
+   fillRectangle(0,40,128,20,RGBToWord(102,51,0));
+   fillRectangle(0,80,128,20,RGBToWord(102,51,0));
+   fillRectangle(0,120,128,20,RGBToWord(102,51,0));
 }
 
+// Function to render game assets
 void renderAssets(void)
 {
-	putImage(55,65,12,16,enemy,0,0);
-	putImage(55,140,12,16,luffy1,0,0);
-	putImage(55,20,12,16,meat,0,0);
+	putImage(55,65,12,16,enemy,0,0); // Render the enemy character at position (55, 65)
+	putImage(55,140,12,16,luffy1,0,0); // Render the player character (Luffy) at position (55, 140)
+	putImage(55,20,12,16,meat,0,0); // Render the meat collectible at position (55, 20)
 }
 
+//Function to render assets level 2 + 3
 void renderAssets2(void)
 {
 	putImage(55,140,12,16,luffy1,0,0);
 	putImage(55,20,12,16,meat,0,0);
 }
 
-
+// Function to check if the player character has hit the ocean (collided with barriers)
 int hitOcean(uint16_t playerx,uint16_t playery,uint16_t w, uint16_t h)
 {
-	int rvalue = 0;
-	
-	int mazeblock=0;
+   int rvalue = 0;  // Initialize the return value to 0 (no collision)
 
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_TOP; mazeblock++)
+   int mazeblock=0; // Variable to iterate over maze blocks
+
+   // Check collisions with barriers on the top left 
+   for (mazeblock = 0; mazeblock < BLOCK_COUNT_TOP; mazeblock++)
+   {
+	if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx,playery)==1)
 	{
-		if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrierX[mazeblock],barrierY[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+    }
+    
+    // Check collisions with barriers on the top right
+    for (mazeblock = 0; mazeblock < BLOCK_COUNT_TOP; mazeblock++)
+    {
+	if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+     }
+     
+     // Check collisions with barriers on the bottom left
+     for (mazeblock = 0; mazeblock < BLOCK_COUNT_BOTTOM; mazeblock++)
+     {
+	if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+     }
+     
+     // Check collisions with barriers on the bottom right
+     for (mazeblock = 0; mazeblock < BLOCK_COUNT_BOTTOM; mazeblock++)
+     {
+	if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+      }
 
+      // Check collisions with barriers on the left side
+      for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
+      {
+	if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx+9,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrierX[mazeblock],side_barrierX[mazeblock],w,h,playerx+9,playery+12)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx,playery+12)==1)
+	{
+		rvalue = 1;
+		break;
 	}
 
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_TOP; mazeblock++)
-	{
-		if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier2X[mazeblock],barrier2Y[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
+     }
 
+     // Check collisions with barriers on the right side
+     for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
+     {
+	if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
 	}
-	
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_BOTTOM; mazeblock++)
+	if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx+9,playery)==1)
 	{
-		if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier3X[mazeblock],barrier3Y[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-
+		rvalue = 1;
+		break;
 	}
-
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_BOTTOM; mazeblock++)
+	if (isInside(side_barrier2X[mazeblock],side_barrier2X[mazeblock],w,h,playerx+9,playery+12)==1)
 	{
-		if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(barrier4X[mazeblock],barrier4Y[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx,playery+12)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+     }
 
+     // Check collisions with barriers on the bottom - left side
+     for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
+     {
+	if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier3X[mazeblock],side_barrier3X[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
 	}
 
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
+     }
+     
+     // Check collisions with barriers on the bottom-right side
+     for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
+     {
+	if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx,playery)==1)
 	{
-		if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx+9,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrierX[mazeblock],side_barrierX[mazeblock],w,h,playerx+9,playery+12)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrierX[mazeblock],side_barrierY[mazeblock],w,h,playerx,playery+12)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx+12,playery)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier4X[mazeblock],side_barrier4X[mazeblock],w,h,playerx+12,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
+	}
+	if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx,playery+16)==1)
+	{
+		rvalue = 1;
+		break;
 	}
 
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
-	{
-		if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx+9,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier2X[mazeblock],side_barrier2X[mazeblock],w,h,playerx+9,playery+12)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier2X[mazeblock],side_barrier2Y[mazeblock],w,h,playerx,playery+12)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-
-	}
-
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
-	{
-		if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier3X[mazeblock],side_barrier3X[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier3X[mazeblock],side_barrier3Y[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-
-	}
-
-	for (mazeblock = 0; mazeblock < BLOCK_COUNT_SIDE; mazeblock++)
-	{
-		if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx+12,playery)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier4X[mazeblock],side_barrier4X[mazeblock],w,h,playerx+12,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-		if (isInside(side_barrier4X[mazeblock],side_barrier4Y[mazeblock],w,h,playerx,playery+16)==1)
-		{
-			rvalue = 1;
-			break;
-		}
-
-	}
-	return rvalue;
+    }
+return rvalue;
 }
