@@ -1,4 +1,6 @@
 #include <stm32f031x6.h>
+#include <string.h>
+#include <sys/wait.h>
 #include "display.h"
 #include "prbs.h"
 #include "sound.h"
@@ -13,10 +15,13 @@
 # define BLOCK_COUNT_BOTTOM 7
 # define BLOCK_COUNT_SIDE 4
 
+//Symbolic Name for themeSong notes
+# define NOTE_SIZE 107
+
+
 // A signature to render the game
 void setUpSystem(void);
  
-
 // These functions are part of the basic game structure and handle initialization,
 // display setup, system tick, delay, I/O setup, and pin configuration.
 
@@ -36,13 +41,12 @@ void renderGame(void);
 // These functions are responsible for rendering different aspects of the game,
 // such as textures, assets, and specific levels.
 void renderAssets(void);
-void renderAssets2(void);
 void renderLevel2(void);
 void renderLevel3(void);
 void renderLevel4(void);
 
 //This function allows the user to reset the curerent level they are at
-void Restart(void);
+void restart(void);
 
 // These functions handle various game-related actions and conditions, such as game over, completing levels,
 // checking player positions relative to enemies and objects, and generating additional game levels.
@@ -85,13 +89,18 @@ void enemyInsidePlayer(uint16_t,uint16_t,uint16_t,uint16_t);
 //Signature to check if the player hits the ocean
 int hitOcean(uint16_t,uint16_t,uint16_t,uint16_t);
 
-//Signature to generate a second, third and fourth level
+//Signature to generate a first, second, third and fourth level
+void level1(void);
 void level2(void);
 void level3(void);
 void level4(void);
 
 //Signature to play music throughout the game
-void IntroNotes(void);
+void playIntroNotes(void);
+void playThemeSong(int [],int);
+void gameOverSound(void);
+void levelCompleteSound(void);
+void gameCompletedSound(void);
 
 // A volatile variable to store the elapsed time in milliseconds
 volatile uint32_t milliseconds;
@@ -198,6 +207,13 @@ const uint16_t fish[] =
 uint16_t waveX = 0;
 uint16_t wavesY = 0;
 
+//Global Variable for the fishes and boats
+uint16_t shipX;
+uint16_t shipY;
+
+uint16_t fishX;
+uint16_t fishY;
+
 //Global Variables for the game
 //Variables declared for our main character Luffy
 int hinverted = 0;
@@ -219,22 +235,11 @@ uint16_t enemy2Y = 100;
 uint16_t enemy3X = 55;
 uint16_t enemy3Y = 85;
 
-uint16_t enemy4X = 55;
-uint16_t enemy4Y = 90;
-
-uint16_t enemy5X = 55;
-uint16_t enemy5Y = 110;
-
-uint16_t enemy6X = 55;
-uint16_t enemy6Y = 120;
-
 //Gloabl variables for enemy movement
 int deltaX = 1;
 int delta2X = -1;
 int delta3X = 1;
-int delta4X = -1;
-int delta5X = 1;
-int delta6X = -1;
+
 
 //Variables for the meat co-ordinates
 uint16_t meatX = 55;
@@ -242,21 +247,46 @@ uint16_t meatY = 20;
 
 //Global Varibales for the notes
 uint16_t introNotes[] = {E4, D4, C4, E4, D4, C4, G3, E3, G3, D4};
+int themeSong[NOTE_SIZE] = {E5, DS4_Eb4, E5, DS4_Eb4, E5, B2, D3, CS2_Db2, B1, A2 , B7, GS1_Ab1, E5, 
+                        DS4_Eb4, E5, DS4_Eb4, E5, B2, D3, CS2_Db2, B4, A2 , B7, GS1_Ab1, CS1_Db1, 
+                        B2, A7, B1, CS2_Db2, DS3_Eb3, E4, FS5_Gb5, GS6_Ab6, FS5_Gb5, E4, DS3_Eb3, E5, DS4_Eb4, E5, 
+                        DS4_Eb4, E5, DS2_Eb2, E3, DS2_Eb2, CS1_Db1, B2, A7 ,B1, GS1_Ab1, 
+                        CS2_Db2, B7, A1, B2, CS3_Db3, DS4_Eb4, E5, FS6_Gb6, GS5_Ab5, FS4_Gb4, E3, 
+                        DS5_Eb5, E4, FS6_Gb6, GS4_Ab4, A5, B2, A3, GS2_Ab2, FS1_Gb1, GS7_Ab7, A1, B1, A2, 
+                        GS7_Ab7, FS1_Gb1, GS2_Ab2, A3, B4, A5, GS6_Ab6, FS5_Gb5, GS4_Ab4, A3, B5, A4, E5, 
+                        DS4_Eb4, E5, B4, D5, CS2_Db2, B3, A2, B1, GS2_Ab2, CS7_Db7, B1, A1, 
+                        B2, CS7_Db7, DS1_Eb1, E2, FS3_Gb3, GS4_Ab4, FS5_Gb5, E6, DS5_Eb5};
+
+int noSong[] = {0};
+
+int musicFlag =  0;
+
 
 int main()
 {
-	
-   setUpSystem(); //Calls the sytem setup yo render the game
+   setUpSystem(); //Calls the sytem setup to render the game
+   
+   //Local Variables for logs for any user interaction with the game
+   char log[] = "Game has been booted";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+   
    displayBlack(); //Potrays a black screen for our main menu
 
    //A Title screen is displayed until the user starts the game (left button pressed)
    while (leftPressed() != 0)
    {
-	  IntroNotes();	
+	  playIntroNotes();	
 
 	  //Displays the Title screen with a logo
       printText("Crossy Seas",25,10,255,0);
-      putImage(30,30,32,30,logo,0,0);
+      putImage(45,45,32,30,logo,0,0);
       printText("By Max & Jennifier",0,110,255,0);
 
       printText("Ready to set sea", 0, 130, 255, 0);
@@ -268,154 +298,15 @@ int main()
    displayBlack();
 
    printText("Crossy Seas",25,10,255,0);
-   putImage(30,30,32,30,logo,0,0);
+   putImage(45,45,32,30,logo,0,0);
    printText("Level 1",0,130,255,0);
    printText("Loading....",0,140,255,0);
 
    delay(1000);
 
-   uint16_t oldx = x; // Store the current x-coordinate of the player
-   uint16_t oldy = y; // Store the current y-coordinate of the player
+   level1();
 
-   renderGame(); // Render the initial state of the game
-
-   delay(50); // Introduce a delay for smoother rendering
-
-   renderAssets(); // Render game assets such as characters and symbols
-
-	//Game Loop
-	while(1)
-	{
-		hmoved = vmoved = 0; // Flags to track player movement
-		hinverted = vinverted = 0; // Flags to track player orientation
-
-		playNote(1000);	// Play a note
-		delay(20); // Introduce a small delay
-
-		//Enemy Movement
-		if (enemyX > 100)
-		{
-			deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
-		}
-
-		if (enemyX < 1)
-		{
-			deltaX = 1; // Move the enemy right if it's beyond x-coordinate 1
-		}
-
-		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0)); // Fill the previous enemy position with a color
-
-		enemyX = enemyX + deltaX; // Update the enemy's x-coordinate
-
-		putImage(enemyX,enemyY,12,16,enemy,0,0); // Draw the enemy at its new position
-
-		enemyInsidePlayer(enemyX,enemyY,x,y); // Check if the enemy is overlapping with the player
-
-		//Luffy Movement
-		//Deletes the original image off the spawn
-
-		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
-		{
-			putImage(x,y,12,16,delete,0,0); // Delete the original player image if a movement key is pressed
-		}
-
-		// Handle player movement in different directions
-		if (rightPressed() == 0)
-		{	
-			// Move the player right
-			// Ensure that the player stays within the game boundaries
-			if (x < 110)
-			{
-				x = x + 1;
-				hmoved = 1;
-				hinverted=0;
-			}						
-		}
-		if (leftPressed() == 0)
-		{			
-			// Move the player left
-			// Ensure that the player stays within the game boundaries
-			if (x > 10)
-			{
-				x = x - 1;
-				hmoved = 1;
-				hinverted=1;
-			}			
-		}
-		if ( downPressed() == 0)
-		{
-			// Move the player down
-			// Ensure that the player stays within the game boundaries
-			if (y < 140)
-			{
-				y = y + 1;			
-				vmoved = 1;
-				vinverted = 0;
-			}
-		}
-		if (upPressed() == 0 )
-		{	
-			// Move the player up
-			// Ensure that the player stays within the game boundaries
-			if (y > 16)
-			{
-				y = y - 1;
-				vmoved = 1;
-				vinverted = 1;	
-			}
-		}
-
-		// Similar logic for left, down, and up movements...
-
-		// Redraw the player if there's been movement to reduce flicker
-		if ((vmoved) || (hmoved))
-		{
-			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0)); // Fill the previous player position with a color
-
-			oldx = x;
-			oldy = y;					
-
-			// Redraw the player image based on movement and orientation
-			if (hmoved)
-			{
-				if (toggle)
-				putImage(x,y,12,16,luffy2,hinverted,0);
-				else
-				putImage(x,y,12,16,luffy3,hinverted,0);
-				
-				toggle = toggle ^ 1;  // Toggle between two images for animation
-			}
-			else
-			{
-				putImage(x,y,12,16,luffy4,0,hinverted);
-			}
-
-			playerInsideEnemy(x,y,enemyX,enemyY); // Check if the player is overlapping with the enemy
-
-			if (playerInsideMeat(x,y,meatX,meatY) == 1)
-			{
-				displayBlack(); // Display a black screen
-				delay(50);
-				displayLevelCompleted(); // Display a level completed message
-				delay(50);	
-				levelCompleted(); // Perform actions for completing a level
-			}
-
-			if (hitOcean(x,y,12,16) == 1)
-			{
-				//Plays a string of musical notes
-				playNote(A3);
-				delay(150);
-				playNote(0);
-				playNote(B3);
-				delay(150);
-				playNote(0);
-				gameOver(); // Displays a game over screen
-			}
-		}
-		delay(50); // Introduce a delay before the next iteration of the game loop
-	}
-	return 0;
+   return 0;
 } //end main
 
 // Function to set up the system, including clock, SysTick, I/O, and timer
@@ -424,7 +315,19 @@ void setUpSystem()
 	initClock(); // Initialize the clock settings
 	initSysTick(); // Initialize the SysTick timer
 	setupIO(); // Set up input/output configurations
-	initTimer(); // Set up input/output configurations
+	initTimer(); // Set up a Timer
+	initSerial(); //Sets up a serial system
+
+	//Local Variables for logs for any user interaction with the game
+    char log[] = "System has been intialised";
+
+    for (int i = 0; i < strlen(log); i++)
+    {
+	  eputchar(log[i]);
+	  delay(50);
+    }
+
+    eputs("\r\n");
 }
 
 // Function to initialize the SysTick timer
@@ -594,16 +497,90 @@ int upPressed()
 // Function that displays a game over screen whenever the player loses the game
 void gameOver()
 {
-	displayBlack(); // Displays a black screen
+	playThemeSong(noSong,0);
+	musicFlag = 1;
+	//Local Variables for logs for any user interaction with the game
+    char log[] = "Player has died";
 
-	// Displays an infinite loop to keep the game over screen visible
-	while (1)
+    for (int i = 0; i < strlen(log); i++)
+    {
+	  eputchar(log[i]);
+	  delay(50);
+    }
+
+    eputs("\r\n");
+	
+	displayBlack(); // Displays a black screen
+	gameOverSound(); //Plays a sound when the game is over
+
+	while (upPressed() != 0)
 	{
 		printTextX2(" Game Over ",0,0,255,0); // Displays text to the user
-		putImage(30,40,32,33,skull,0,0); //Displays a skull 
-		printText("Better Luck",0,140,255,0); // Displays "Better Luck" at coordinates (0,140)
-		printText("Next Time!",0,150,255,0); // Displays the text "Next Time!" at coordinates (0, 150)
-	}	
+		putImage(45,45,32,33,skull,0,0); //Displays a skull 
+		printText("Darkness Consumes:",0,130,255,0); // Displays "Darkness Consumes:" at coordinates (0,130)
+		printText("Your Journey Ends",0,140,255,0); // Displays "Your Journey Ends" at coordinates (0,140)
+		printText("Press up to retry",0,150,255,0); // Displays the text "Press up to retry" at coordinates (0, 150) 
+	}
+
+	// Delay for a short period to ensure smooth transition
+	delay(50);
+
+	restart(); //Calls a function that restarts the game
+}
+
+void restart(void)
+{
+
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Game has restarted";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+	
+	//Variable to continue
+    int restart_game = 0;
+
+	while (restart_game == 0)
+	{
+		fillRectangle(0,0,128,160,0);
+		fillRectangle(40,0,45,179,0);
+		fillRectangle(0,65,128,20,0);
+
+		if (upPressed() == 0) // up pressed
+		{   
+			restart_game = 1;   
+
+			while (1)
+			{
+				printText("Crossy Seas",25,10,255,0);
+				putImage(45,45,32,30,logo,0,0);
+
+				delay(1000);
+
+				printText("Level 1",0,130,255,0);
+				printText("Loading....",0,150,255,0);
+
+				delay(1000);
+				level1();
+				delay(1000);
+			}
+		}
+	}
+}
+
+void gameOverSound(void)
+{
+	playNote(A3);
+	delay(150);
+	playNote(0);
+	playNote(B3);
+	delay(150);
+	playNote(0);
 }
 
 // Function to check if an enemy is inside the player's area
@@ -612,13 +589,6 @@ void enemyInsidePlayer(uint16_t enemyX,uint16_t enemyY,uint16_t x ,uint16_t y)
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(x,y,12,16,enemyX,enemyY) || isInside(x,y,12,16,enemyX+12,enemyY) || isInside(x,y,12,16,enemyX,enemyY+16) || isInside(x,y,12,16,enemyX+12,enemyY+16) )
 	{
-		//Plays a string of notes
-		playNote(A3);
-		delay(150);
-		playNote(0);
-		playNote(B3);
-		delay(150);
-		playNote(0);
 		gameOver(); // Call the game over function when there's an overlap
 	}
 }
@@ -628,13 +598,6 @@ void playerInsideEnemy(uint16_t x,uint16_t y,uint16_t enemyX ,uint16_t enemyY)
 	// Now check for an overlap by checking to see if ANY of the 4 corners of Luffy are within the enemy area
 	if (isInside(enemyX,enemyY,12,16,x,y) || isInside(enemyX,enemyY,12,16,x+12,y) || isInside(enemyX,enemyY,12,16,x,y+16) || isInside(enemyX,enemyY,12,16,x+12,y+16) )
 	{
-		//Plays a string of notes
-		playNote(A3);
-		delay(150);
-		playNote(0);
-		playNote(B3);
-		delay(150);
-		playNote(0);
 		gameOver(); // Call the game over function when there's an overlap
 	}
 }
@@ -659,7 +622,7 @@ void displayBlack(void)
 }
 
 //Function that plays a song when the game is loaded
-void IntroNotes(void)
+void playIntroNotes(void)
 {
 	// Loop through the array of intro notes
 	for(int i = 0; i != 10; i++)
@@ -671,18 +634,42 @@ void IntroNotes(void)
 	playNote(0); // Play a special note (or silence) to conclude the song
 }
 
+//Function that plays a song when the game is loaded
+void playThemeSong(int themeSong[],int sizeOfNotes)
+{
+	static int nextNote = 0;
+    
+	if (milliseconds >= 500)
+        {
+            playNote(0);
+            nextNote++; // Move onto the next note.
+            milliseconds = 0;
+        }
+        else 
+        {
+            playNote(themeSong[nextNote]);
+        }
+        if (nextNote > sizeOfNotes)
+        {
+            nextNote = 0;
+        }
+}
+
 void displayLevelCompleted(void)
 {
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Player has completed level 1";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+
 	//Plays a string of notes
-	playNote(B4);
-	delay(200);
-	playNote(0);
-	playNote(C4);
-	delay(200);
-	playNote(0);
-	playNote(C6);
-	delay(400);
-	playNote(0);
+	levelCompleteSound();
 
 	// Wait for the right button to be pressed before displaying the level completion message
 	while (rightPressed() != 0)
@@ -706,16 +693,19 @@ void displayLevelCompleted(void)
 
 void displayLevel2Completed(void)
 {
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Player has completed level 2";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+	
 	//Plays a string of notes
-	playNote(B4);
-	delay(200);
-	playNote(0);
-	playNote(C4);
-	delay(200);
-	playNote(0);
-	playNote(C6);
-	delay(400);
-	playNote(0);
+	levelCompleteSound();
 
 	// Wait for the right button to be pressed before displaying the level completion message
 	while (rightPressed() != 0)
@@ -739,16 +729,19 @@ void displayLevel2Completed(void)
 
 void displayLevel3Completed(void)
 {
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Player has completed level 3";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+
 	//Plays a string of notes
-	playNote(B4);
-	delay(200);
-	playNote(0);
-	playNote(C4);
-	delay(200);
-	playNote(0);
-	playNote(C6);
-	delay(400);
-	playNote(0);
+	levelCompleteSound();
 
 	// Wait for the right button to be pressed before displaying the level completion message
 	while (rightPressed() != 0)
@@ -788,7 +781,7 @@ void levelCompleted(void)
 			while (1)
 			{
 				printText("Crossy Seas",25,10,255,0);
-				putImage(30,30,32,30,logo,0,0);
+				putImage(45,45,32,30,logo,0,0);
 
 				delay(1000);
 
@@ -823,7 +816,7 @@ void level2Completed(void)
 			while (1)
 			{
 				printText("Crossy Seas",25,10,255,0);
-				putImage(30,30,32,30,logo,0,0);
+				putImage(45,45,32,30,logo,0,0);
 			
 				delay(1000);
 			
@@ -858,7 +851,7 @@ void level3Completed(void)
 			while (1)
 			{
 				printText("Crossy Seas",25,10,255,0);
-				putImage(30,30,32,30,logo,0,0);
+				putImage(45,45,32,30,logo,0,0);
 
 				delay(1000);
 
@@ -875,12 +868,43 @@ void level3Completed(void)
 	}
 }
 
- 
-
+//Function that displays a screen congradulating the player for completing the game
 void gameCompleted(void)
-
 {
-	displayBlack();
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Player has completed the Game";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+
+   displayBlack();
+
+	while (upPressed() != 0)
+	{
+		gameCompletedSound();
+
+		printText("Congratulations!",6,10,255,0);
+		printText("You completed", 6, 20, 255, 0);
+		printText("Crossy Seas", 6, 30, 255, 0);
+		printText("By Max & Jennifer", 6, 40, 255, 0);
+		putImage(45,75,32,30,logo,0,0);
+
+		printText("Congradulations",0,140,255,0); // Displays "Congradulations" at coordinates (0,140)
+		printText("Press up to retry",0,150,255,0); // Displays the text "Press up to retry" at coordinates (0, 150)
+	}
+
+	delay(50);
+
+	restart();                       
+}
+
+void gameCompletedSound(void)
+{
 	playNote(G4);
 	delay(150);
 	playNote(0);
@@ -896,23 +920,194 @@ void gameCompleted(void)
 	playNote(C6);
 	delay(500);
 	playNote(0);
+}
 
-	while (1)
-	{
-		printText("Congratulations!",6,10,255,0);
-		printText("You completed", 6, 20, 255, 0);
-		printText("Crossy Seas", 6, 30, 255, 0);
-		printText("By Max & Jennifer", 6, 40, 255, 0);
+void levelCompleteSound(void)
+{
+	playNote(B4);
+	delay(200);
+	playNote(0);
+	playNote(C4);
+	delay(200);
+	playNote(0);
+	playNote(C6);
+	delay(400);
+	playNote(0);
+}
 
-		putImage(30,70,32,30,logo,0,0);
-	}                            
+void level1(void)
+{
+   delay(1000);
+
+   //Local Variables for logs for any user interaction with the game
+   char log[] = "Game has loaded level 1";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+
+   // Initialize player coordinates
+	x = 55;
+	y = 140;
+
+   uint16_t oldx = x; // Store the current x-coordinate of the player
+   uint16_t oldy = y; // Store the current y-coordinate of the player
+
+   //Set enemy Y co-ordinates
+   enemyY = 65;
+
+   renderGame(); // Render the initial state of the game
+
+   delay(50); // Introduce a delay for smoother rendering
+
+   renderAssets(); // Render game assets such as characters and symbols
+   
+	//Game Loop
+	while(1)
+	{	
+		if (musicFlag == 0)
+		{
+			playThemeSong(themeSong,NOTE_SIZE);
+		}
+		
+		hmoved = vmoved = 0; // Flags to track player movement
+		hinverted = vinverted = 0; // Flags to track player orientation
+
+		//Enemy Movement
+		if (enemyX > 100)
+		{
+			deltaX = -1; // Move the enemy left if it's beyond x-coordinate 100
+		}
+
+		if (enemyX < 1)
+		{
+			deltaX = 1; // Move the enemy right if it's beyond x-coordinate 1
+		}
+
+		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0)); // Fill the previous enemy position with a color
+
+		enemyX = enemyX + deltaX; // Update the enemy's x-coordinate
+
+		putImage(enemyX,enemyY,12,16,enemy,0,0); // Draw the enemy at its new position
+
+		enemyInsidePlayer(enemyX,enemyY,x,y); // Check if the enemy is overlapping with the player
+
+		//Luffy Movement
+		//Deletes the original image off the spawn
+
+		if (rightPressed() == 0 || leftPressed() == 0 || upPressed() == 0 || downPressed() == 0)
+		{
+			putImage(x,y,12,16,delete,0,0); // Delete the original player image if a movement key is pressed
+		}
+
+		// Handle player movement in different directions
+		if (rightPressed() == 0)
+		{	
+			// Move the player right
+			// Ensure that the player stays within the game boundaries
+			if (x < 110)
+			{
+				x = x + 1;
+				hmoved = 1;
+				hinverted=0;
+			}						
+		}
+		if (leftPressed() == 0)
+		{			
+			// Move the player left
+			// Ensure that the player stays within the game boundaries
+			if (x > 10)
+			{
+				x = x - 1;
+				hmoved = 1;
+				hinverted=1;
+			}			
+		}
+		if ( downPressed() == 0)
+		{
+			// Move the player down
+			// Ensure that the player stays within the game boundaries
+			if (y < 140)
+			{
+				y = y + 1;			
+				vmoved = 1;
+				vinverted = 0;
+			}
+		}
+		if (upPressed() == 0 )
+		{	
+			// Move the player up
+			// Ensure that the player stays within the game boundaries
+			if (y > 16)
+			{
+				y = y - 1;
+				vmoved = 1;
+				vinverted = 1;	
+			}
+		}
+
+		// Similar logic for left, down, and up movements...
+
+		// Redraw the player if there's been movement to reduce flicker
+		if ((vmoved) || (hmoved))
+		{
+			fillRectangle(oldx,oldy,12,16,RGBToWord(102,51,0)); // Fill the previous player position with a color
+
+			oldx = x;
+			oldy = y;					
+
+			// Redraw the player image based on movement and orientation
+			if (hmoved)
+			{
+				if (toggle)
+					putImage(x,y,12,16,luffy2,hinverted,0);
+				else
+					putImage(x,y,12,16,luffy3,hinverted,0);
+				
+				toggle = toggle ^ 1;  // Toggle between two images for animation
+			}
+			else
+			{
+				putImage(x,y,12,16,luffy4,0,hinverted);
+			}
+
+			playerInsideEnemy(x,y,enemyX,enemyY); // Check if the player is overlapping with the enemy
+
+			if (playerInsideMeat(x,y,meatX,meatY) == 1)
+			{
+				displayBlack(); // Display a black screen
+				delay(50);
+				displayLevelCompleted(); // Display a level completed message
+				delay(50);	
+				levelCompleted(); // Perform actions for completing a level
+			}
+
+			if (hitOcean(x,y,12,16) == 1)
+			{
+				gameOver(); // Displays a game over screen
+			}
+		}
+		delay(50); // Introduce a delay before the next iteration of the game loop
+	}
 }
 
 // Function to handle the second level of the game
 void level2(void)
 {
+    delay(1000);
 
-	delay(1000);
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Game has loaded level 2";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
 
 	// Initialize player coordinates
 	x = 55;
@@ -925,7 +1120,7 @@ void level2(void)
 	 // Render the second level environment and assets
 	renderLevel2();
 	delay(1000);
-	renderAssets2();
+	renderAssets();
 	delay(1000);
 
 	while (1)
@@ -965,7 +1160,6 @@ void level2(void)
 	 // Check if player collides with enemies
 	 enemyInsidePlayer(enemyX,enemyY,x,y);
 	 enemyInsidePlayer(enemy2X,enemy2Y,x,y);
-
 
 	 //Luffy Movement
 	 //Deletes the original image off the spawn
@@ -1067,12 +1261,20 @@ void level2(void)
 
 void level3(void)
 {
-
 	delay(1000);
 
 	// Initialize player coordinates
 	x = 55;
 	y = 140;
+
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Game has loaded level 3";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
 
 	 // Variables for saving previous player position
 	uint16_t oldx = x;
@@ -1081,7 +1283,7 @@ void level3(void)
 	// Render the 3rd level environment and assets
 	renderLevel3();
 	delay(1000);
-	renderAssets2();
+	renderAssets();
 	delay(1000);
 	
 	while (1)
@@ -1089,6 +1291,11 @@ void level3(void)
 		// Reset movement flags
 		hmoved = vmoved = 0;
 		hinverted = vinverted = 0;
+		
+		//Sets new co-ordinates for the enemy
+		enemyY = 40;
+		enemy2Y = 80;
+		enemy3Y = 120;
 
 		//Enemy Movement
 		if (enemyX > 100)
@@ -1211,7 +1418,7 @@ void level3(void)
 		{
 			displayBlack();
 			delay(50);
-			gameCompleted();
+			displayLevel3Completed();
 		}
 		
 		if (hitOcean(x,y,12,16) == 1)
@@ -1236,7 +1443,7 @@ void level4(void)
 
 	renderLevel4();
 	delay(1000);
-	renderAssets2();
+	renderAssets();
 	delay(1000);
 
 	while (1)
@@ -1277,63 +1484,22 @@ void level4(void)
 			delta3X = 1;
 		}
 
-		if (enemy4X > 100)
-		{
-			delta4X = -1;
-		}
-
-		if (enemy4X < 1)
-		{
-			delta4X = 1;
-		}
-
-		if (enemy5X > 100)
-		{
-			delta5X = 1;
-		}
-
-		if (enemy5X < 1)
-		{
-			delta5X = -1;
-		}
-
-		if (enemy6X > 100)
-		{
-			delta6X = -1;
-		}
-
-		if (enemy6X < 1)
-		{
-			delta6X = 1;
-		}
-
 		fillRectangle(enemyX,enemyY,12,16,RGBToWord(102,51,0));
 		fillRectangle(enemy2X,enemy2Y,12,16,RGBToWord(102,51,0));
 		fillRectangle(enemy3X,enemy3Y,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy4X,enemy4Y,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy5X,enemy5Y,12,16,RGBToWord(102,51,0));
-		fillRectangle(enemy6X,enemy6Y,12,16,RGBToWord(102,51,0));
-
+		
 		enemyX = enemyX + deltaX;
 		enemy2X = enemy2X - delta2X;
 		enemy3X = enemy3X + delta3X;
-		enemy4X = enemy4X + delta4X;
-		enemy5X = enemy5X - delta5X;
-		enemy6X = enemy6X + delta6X;
 
 		putImage(enemyX,enemyY,12,16,enemy,0,0);
 		putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
 		putImage(enemy3X,enemy3Y,12,16,enemy,0,0);
-		putImage(enemy4X,enemy4Y,12,16,enemy,0,0);
-		putImage(enemy5X,enemy5Y,12,16,enemy,0,0);
-		putImage(enemy6X,enemy6Y,12,16,enemy,0,0);
+		
 
 		enemyInsidePlayer(enemyX,enemyY,x,y);
 		enemyInsidePlayer(enemy2X,enemy2Y,x,y);
 		enemyInsidePlayer(enemy3X,enemy3Y,x,y);
-		enemyInsidePlayer(enemy4X,enemy4Y,x,y);
-		enemyInsidePlayer(enemy5X,enemy5Y,x,y);
-		enemyInsidePlayer(enemy6X,enemy6Y,x,y);
 
 		//Luffy Movement
 		//Deletes the original image off the spawn
@@ -1426,27 +1592,45 @@ void level4(void)
 
 void renderGame()
 {
+	//Local Variables for logs for any user interaction with the game
+    char log[] = "Game has rendered level 1";
+
+    for (int i = 0; i < strlen(log); i++)
+    {
+	  eputchar(log[i]);
+	  delay(50);
+    }
+
+    eputs("\r\n");
+
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
 	// Generate waves in the sea
-	for (int i = 0; i < 40; i++)
+	for (int i = 0; i < 80; i++)
 	{
 		putImage(waveX,wavesY,4,8,waves,0,0);			
-		waveX = waveX + 4;
+		waveX = waveX + 8;
 
-		for (int j = 0; j < 80; j++)
+		for (int j = 0; j < 160; j++)
 		{
 			putImage(waveX,wavesY,4,8,waves,0,0);
-			wavesY = wavesY + 8;
+			wavesY = wavesY + 16;
 		}
 	}
 
-	// Place various images representing objects in the game
+	fishX = rand() % 30;
+	fishY = rand() % 50;
+
+	shipX = rand() % 30;
+	shipY = rand() % 50;
+	
 	putImage(20,90,12,16,fish,0,0);
 	putImage(8,10,12,16,ship,0,0);
+
 	putImage(25,40,12,16,fish,0,0);
 	putImage(5,120,12,16,ship,0,0);
+	
 	putImage(-150,4,12,16,ship,0,0);
 	putImage(-160,40,12,16,ship,0,0);
 	putImage(-160,100,12,16,fish,0,0);
@@ -1461,19 +1645,30 @@ void renderGame()
 
 void renderLevel2()
 {
+	//Local Variables for logs for any user interaction with the game
+   char log[] = "Game has rendered level 2";
+
+   for (int i = 0; i < strlen(log); i++)
+   {
+	 eputchar(log[i]);
+	 delay(50);
+   }
+
+   eputs("\r\n");
+   
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
 	// Generate waves in the sea
-	for (int i = 0; i < 70; i++)
+	for (int i = 0; i < 80; i++)
 	{
 		putImage(waveX,wavesY,4,8,waves,0,0);
-		waveX = waveX + 4;
+		waveX = waveX + 8;
 
-		for (int j = 0; j < 150; j++)
+		for (int j = 0; j < 160; j++)
 		{
 			putImage(waveX,wavesY,4,8,waves,0,0);
-			wavesY = wavesY + 8;
+			wavesY = wavesY + 16;
 		}
 	}
 
@@ -1497,16 +1692,27 @@ void renderLevel2()
 
 void renderLevel3()
 {
+	//Local Variables for logs for any user interaction with the game
+    char log[] = "Game has rendered level 3";
+
+	for (int i = 0; i < strlen(log); i++)
+	{
+		eputchar(log[i]);
+		delay(50);
+	}
+
+    eputs("\r\n");
+   
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
 	// Generate waves in the sea
-	for (int i = 0; i < 60; i++)
+	for (int i = 0; i < 80; i++)
 	{
 		putImage(waveX,wavesY,4,8,waves,0,0);
-		waveX = waveX + 4;
+		waveX = waveX + 8;
 
-		for (int j = 0; j < 150; j++)
+		for (int j = 0; j < 160; j++)
 		{
 			putImage(waveX,wavesY,4,8,waves,0,0);
 			wavesY = wavesY + 8;
@@ -1534,21 +1740,31 @@ void renderLevel3()
 }
 
 void renderLevel4()
-
 {
+	//Local Variables for logs for any user interaction with the game
+	char log[] = "Game has rendered level 4";
+
+	for (int i = 0; i < strlen(log); i++)
+	{
+		eputchar(log[i]);
+		delay(50);
+	}
+
+	eputs("\r\n");
+   
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
 	// Generate waves in the sea
-	for (int i = 0; i < 60; i++)
+	for (int i = 0; i < 80; i++)
 	{
 		putImage(waveX,wavesY,4,8,waves,0,0);
-		waveX = waveX + 4;
+		waveX = waveX + 8;
 
-		for (int j = 0; j < 150; j++)
+		for (int j = 0; j < 160; j++)
 		{
 			putImage(waveX,wavesY,4,8,waves,0,0);
-			wavesY = wavesY + 8;
+			wavesY = wavesY + 16;
 		}
 	}
 	
@@ -1574,18 +1790,17 @@ void renderLevel4()
 
 void renderAssets(void)
 {
-	// Render enemy character
-	putImage(55,65,12,16,enemy,0,0);
+	//Local Variables for logs for any user interaction with the game
+    char log[] = "Assets has been rendered";
 
-	// Render player character
-	putImage(55,140,12,16,luffy1,0,0);
+    for (int i = 0; i < strlen(log); i++)
+    {
+	  eputchar(log[i]);
+	  delay(50);
+    }
 
-	// Render a collectible asset
-	putImage(55,20,12,16,meat,0,0);
-}
+    eputs("\r\n");
 
-void renderAssets2(void)
-{
 	// Render player character
 	putImage(55,140,12,16,luffy1,0,0);
 
