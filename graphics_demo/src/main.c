@@ -1,5 +1,5 @@
 #include <stm32f031x6.h>
-#include <string.h>
+#include <stdlib.h>
 #include <sys/wait.h>
 #include "display.h"
 #include "prbs.h"
@@ -17,7 +17,6 @@
 
 //Symbolic Name for themeSong notes
 # define NOTE_SIZE 107
-
 
 // A signature to render the game
 void setUpSystem(void);
@@ -101,6 +100,9 @@ void playThemeSong(int [],int);
 void gameOverSound(void);
 void levelCompleteSound(void);
 void gameCompletedSound(void);
+
+//Function Signature to log events
+void serialLog(char []);
 
 // A volatile variable to store the elapsed time in milliseconds
 volatile uint32_t milliseconds;
@@ -261,21 +263,14 @@ int noSong[] = {0};
 
 int musicFlag =  0;
 
+//Seed Variable for prbs generator
+uint32_t seed = 0;
 
 int main()
 {
    setUpSystem(); //Calls the sytem setup to render the game
-   
-   //Local Variables for logs for any user interaction with the game
-   char log[] = "Game has been booted";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   serialLog("Game has been booted");
    
    displayBlack(); //Potrays a black screen for our main menu
 
@@ -293,6 +288,10 @@ int main()
       printText("Left Button", 0, 140, 255, 0);
       printText("To begin!", 0, 150, 255, 0);
    }
+
+   while (!leftPressed() || seed == 0){
+        seed++;
+    }
 
    //Render Level 1 loading...
    displayBlack();
@@ -317,17 +316,12 @@ void setUpSystem()
 	setupIO(); // Set up input/output configurations
 	initTimer(); // Set up a Timer
 	initSerial(); //Sets up a serial system
+	initprbs(seed);
 
 	//Local Variables for logs for any user interaction with the game
     char log[] = "System has been intialised";
 
-    for (int i = 0; i < strlen(log); i++)
-    {
-	  eputchar(log[i]);
-	  delay(50);
-    }
-
-    eputs("\r\n");
+    serialLog(log);
 }
 
 // Function to initialize the SysTick timer
@@ -502,14 +496,8 @@ void gameOver()
 	//Local Variables for logs for any user interaction with the game
     char log[] = "Player has died";
 
-    for (int i = 0; i < strlen(log); i++)
-    {
-	  eputchar(log[i]);
-	  delay(50);
-    }
+	serialLog(log);
 
-    eputs("\r\n");
-	
 	displayBlack(); // Displays a black screen
 	gameOverSound(); //Plays a sound when the game is over
 
@@ -530,17 +518,10 @@ void gameOver()
 
 void restart(void)
 {
-
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Game has restarted";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   serialLog(log);
 	
 	//Variable to continue
     int restart_game = 0;
@@ -660,13 +641,8 @@ void displayLevelCompleted(void)
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Player has completed level 1";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
+   	serialLog(log);
 
-   eputs("\r\n");
 
 	//Plays a string of notes
 	levelCompleteSound();
@@ -696,13 +672,7 @@ void displayLevel2Completed(void)
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Player has completed level 2";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   serialLog(log);
 	
 	//Plays a string of notes
 	levelCompleteSound();
@@ -732,13 +702,7 @@ void displayLevel3Completed(void)
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Player has completed level 3";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   serialLog(log);
 
 	//Plays a string of notes
 	levelCompleteSound();
@@ -862,9 +826,7 @@ void level3Completed(void)
 				level4();
 				delay(1000);
 			}
-
 		}
-
 	}
 }
 
@@ -874,20 +836,14 @@ void gameCompleted(void)
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Player has completed the Game";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   serialLog(log);
 
    displayBlack();
 
+   gameCompletedSound();
+
 	while (upPressed() != 0)
 	{
-		gameCompletedSound();
-
 		printText("Congratulations!",6,10,255,0);
 		printText("You completed", 6, 20, 255, 0);
 		printText("Crossy Seas", 6, 30, 255, 0);
@@ -942,13 +898,7 @@ void level1(void)
    //Local Variables for logs for any user interaction with the game
    char log[] = "Game has loaded level 1";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   	serialLog(log);
 
    // Initialize player coordinates
 	x = 55;
@@ -965,6 +915,8 @@ void level1(void)
    delay(50); // Introduce a delay for smoother rendering
 
    renderAssets(); // Render game assets such as characters and symbols
+
+   musicFlag = 0;
    
 	//Game Loop
 	while(1)
@@ -1101,17 +1053,18 @@ void level2(void)
     delay(1000);
 
 	//Local Variables for logs for any user interaction with the game
-   char log[] = "Game has loaded level 2";
+   char log[] = "Game has loaded level 2\r\n";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
+   	serialLog(log);
+
 
 	// Initialize player coordinates
 	x = 55;
 	y = 140;
+
+	//Reset enemy co-ordinate
+	enemyY = 65;
+	enemy2Y = 100;
 
 	// Variables for saving previous player position
 	uint16_t oldx = x;
@@ -1125,6 +1078,11 @@ void level2(void)
 
 	while (1)
 	{
+	  if (musicFlag == 0)
+	  {
+		playThemeSong(themeSong,NOTE_SIZE);
+	  }
+
 	 // Reset movement flags
 	 hmoved = vmoved = 0;
 	 hinverted = vinverted = 0;
@@ -1268,13 +1226,14 @@ void level3(void)
 	y = 140;
 
 	//Local Variables for logs for any user interaction with the game
-   char log[] = "Game has loaded level 3";
+    char log[] = "Game has loaded level 3";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
+   	serialLog(log);
+
+	//Sets new co-ordinates for the enemy
+	enemyY = 40;
+	enemy2Y = 80;
+	enemy3Y = 120;
 
 	 // Variables for saving previous player position
 	uint16_t oldx = x;
@@ -1285,17 +1244,19 @@ void level3(void)
 	delay(1000);
 	renderAssets();
 	delay(1000);
+
+	musicFlag = 0;
 	
 	while (1)
 	{
+		if (musicFlag == 0)
+		{
+			playThemeSong(themeSong,NOTE_SIZE);
+		}
+
 		// Reset movement flags
 		hmoved = vmoved = 0;
 		hinverted = vinverted = 0;
-		
-		//Sets new co-ordinates for the enemy
-		enemyY = 40;
-		enemy2Y = 80;
-		enemy3Y = 120;
 
 		//Enemy Movement
 		if (enemyX > 100)
@@ -1433,10 +1394,16 @@ void level3(void)
 
 void level4(void)
 {
+	
 	delay(1000);
 
     x = 55;
 	y = 140;
+
+	//Sets new co-ordinates for the enemy
+	enemyY = 40;
+	enemy2Y = 80;
+	enemy3Y = 120;
 
 	uint16_t oldx = x;
 	uint16_t oldy = y;
@@ -1446,8 +1413,18 @@ void level4(void)
 	renderAssets();
 	delay(1000);
 
+	char log[] = "Game has rendered level 4";
+
+	serialLog(log);
+
+	musicFlag = 0;
+
 	while (1)
 	{
+		if (musicFlag == 0)
+	  	{
+			playThemeSong(themeSong,NOTE_SIZE);
+	  	}
 
 		hmoved = vmoved = 0;
 
@@ -1595,13 +1572,7 @@ void renderGame()
 	//Local Variables for logs for any user interaction with the game
     char log[] = "Game has rendered level 1";
 
-    for (int i = 0; i < strlen(log); i++)
-    {
-	  eputchar(log[i]);
-	  delay(50);
-    }
-
-    eputs("\r\n");
+	serialLog(log);
 
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
@@ -1619,20 +1590,22 @@ void renderGame()
 		}
 	}
 
-	fishX = rand() % 30;
-	fishY = rand() % 50;
-
-	shipX = rand() % 30;
-	shipY = rand() % 50;
+	fishX = rand() % 30 + 1;
+	fishY = rand() % 50 + 1;
 	
-	putImage(20,90,12,16,fish,0,0);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
 	putImage(8,10,12,16,ship,0,0);
+
+	fishX = rand() % 30 +70;
+	fishY = rand() % 50 + 1;
 
 	putImage(25,40,12,16,fish,0,0);
 	putImage(5,120,12,16,ship,0,0);
-	
+
 	putImage(-150,4,12,16,ship,0,0);
 	putImage(-160,40,12,16,ship,0,0);
+	
 	putImage(-160,100,12,16,fish,0,0);
 	putImage(-150,130,12,16,ship,0,0);
 
@@ -1648,13 +1621,7 @@ void renderLevel2()
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Game has rendered level 2";
 
-   for (int i = 0; i < strlen(log); i++)
-   {
-	 eputchar(log[i]);
-	 delay(50);
-   }
-
-   eputs("\r\n");
+   	serialLog(log);
    
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
@@ -1695,14 +1662,8 @@ void renderLevel3()
 	//Local Variables for logs for any user interaction with the game
     char log[] = "Game has rendered level 3";
 
-	for (int i = 0; i < strlen(log); i++)
-	{
-		eputchar(log[i]);
-		delay(50);
-	}
+	serialLog(log);
 
-    eputs("\r\n");
-   
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
 
@@ -1744,13 +1705,7 @@ void renderLevel4()
 	//Local Variables for logs for any user interaction with the game
 	char log[] = "Game has rendered level 4";
 
-	for (int i = 0; i < strlen(log); i++)
-	{
-		eputchar(log[i]);
-		delay(50);
-	}
-
-	eputs("\r\n");
+	serialLog(log);
    
 	// Sets the background of the game to represent the sea
 	fillRectangle(0,0,128,160,RGBToWord(51,143,255));
@@ -1793,13 +1748,7 @@ void renderAssets(void)
 	//Local Variables for logs for any user interaction with the game
     char log[] = "Assets has been rendered";
 
-    for (int i = 0; i < strlen(log); i++)
-    {
-	  eputchar(log[i]);
-	  delay(50);
-    }
-
-    eputs("\r\n");
+    serialLog(log);
 
 	// Render player character
 	putImage(55,140,12,16,luffy1,0,0);
@@ -1873,4 +1822,20 @@ int hitOcean(uint16_t playerx,uint16_t playery,uint16_t w, uint16_t h)
 	}
 
 	return rvalue;
+}
+
+void serialLog(char serialLog[])
+{
+	//Serial Communication
+	//Logs actions the user interacted
+
+	int i = 0;
+
+	while (serialLog[i] != '\0')
+	{
+		eputchar(serialLog[i]);
+		i++;
+	}
+	
+	eputs("\r\n");
 }
