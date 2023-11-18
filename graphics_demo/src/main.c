@@ -1,6 +1,4 @@
 #include <stm32f031x6.h>
-#include <stdlib.h>
-#include <sys/wait.h>
 #include "display.h"
 #include "prbs.h"
 #include "sound.h"
@@ -109,11 +107,11 @@ volatile uint32_t milliseconds;
 
 //Barriers are set to the top-left corner
 const uint16_t barrierX[BLOCK_COUNT_TOP] = {30,30,30,30,30,30};
-const uint16_t barrierY[BLOCK_COUNT_TOP] = {0,10,20,30,40,50};
+const uint16_t barrierY[BLOCK_COUNT_TOP] = {1,10,20,30,40,50};
 
 //Barriers are set to the top-right corner
 const uint16_t barrier2X[BLOCK_COUNT_TOP] = {80,80,80,80,80,80};
-const uint16_t barrier2Y[BLOCK_COUNT_TOP] = {0,10,20,30,40,50};
+const uint16_t barrier2Y[BLOCK_COUNT_TOP] = {1,10,20,30,40,50};
 
 //Barriers are set to the bottom-left of the corner
 const uint16_t barrier3X[BLOCK_COUNT_BOTTOM] = {30,30,30,30,30,30,30};
@@ -491,8 +489,11 @@ int upPressed()
 // Function that displays a game over screen whenever the player loses the game
 void gameOver()
 {
+	//Mutes the song
 	playThemeSong(noSong,0);
+	
 	musicFlag = 1;
+	
 	//Local Variables for logs for any user interaction with the game
     char log[] = "Player has died";
 
@@ -526,6 +527,7 @@ void restart(void)
 	//Variable to continue
     int restart_game = 0;
 
+	// Resets the game
 	while (restart_game == 0)
 	{
 		fillRectangle(0,0,128,160,0);
@@ -554,6 +556,7 @@ void restart(void)
 	}
 }
 
+//Plays a sound with the game over screen 
 void gameOverSound(void)
 {
 	playNote(A3);
@@ -636,13 +639,13 @@ void playThemeSong(int themeSong[],int sizeOfNotes)
         }
 }
 
+//Displays to the screen that the player has completed the level
 void displayLevelCompleted(void)
 {
 	//Local Variables for logs for any user interaction with the game
    char log[] = "Player has completed level 1";
 
    	serialLog(log);
-
 
 	//Plays a string of notes
 	levelCompleteSound();
@@ -1438,7 +1441,7 @@ void level4(void)
 
 		if (enemy2X > 100)
 		{
-			delta2X = 1;
+			delta2X = -1;
 		}
 
 		if (enemy3X > 100)
@@ -1453,7 +1456,7 @@ void level4(void)
 
 		if (enemy2X < 1)
 		{
-			delta2X = -1;
+			delta2X = 1;
 		}
 
 		if (enemy3X < 1)
@@ -1466,7 +1469,7 @@ void level4(void)
 		fillRectangle(enemy3X,enemy3Y,12,16,RGBToWord(102,51,0));
 		
 		enemyX = enemyX + deltaX;
-		enemy2X = enemy2X - delta2X;
+		enemy2X = enemy2X + delta2X;
 		enemy3X = enemy3X + delta3X;
 
 		putImage(enemyX,enemyY,12,16,enemy,0,0);
@@ -1590,24 +1593,53 @@ void renderGame()
 		}
 	}
 
-	fishX = rand() % 30 + 1;
-	fishY = rand() % 50 + 1;
+	//Extra Assets randomly generated for level design
 	
+	// Top-Left Side
+	fishX = random(1,30);
+	fishY = random(1,50);
 	
 	putImage(fishX,fishY,12,16,fish,0,0);
-	putImage(8,10,12,16,ship,0,0);
 
-	fishX = rand() % 30 +70;
-	fishY = rand() % 50 + 1;
+	shipX = random(1,30);
+	shipY = random(1,50);
 
-	putImage(25,40,12,16,fish,0,0);
-	putImage(5,120,12,16,ship,0,0);
+	putImage(shipX,shipY,12,16,ship,0,0);
 
-	putImage(-150,4,12,16,ship,0,0);
-	putImage(-160,40,12,16,ship,0,0);
+	//Bottom-left side
+	fishX = random(1,30);
+	fishY = random(85,147);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(1,30);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	//Top-Right side
+
+	shipX = random(80,110);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	shipX = random(80,110);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	//Bottom-right side
+
+	fishX = random(80,110);
+	fishY = random(85,147);
 	
-	putImage(-160,100,12,16,fish,0,0);
-	putImage(-150,130,12,16,ship,0,0);
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(80,110);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
 
 	//Main bridge
 	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
@@ -1640,14 +1672,54 @@ void renderLevel2()
 	}
 
 	// Place various images representing objects in the game
-	putImage(8,10,12,16,ship,0,0);
-	putImage(25,40,12,16,fish,0,0);
-	putImage(5,130,12,16,ship,0,0);
-	putImage(20,85,12,16,fish,0,0);
-	putImage(-150,4,12,16,fish,0,0);
-	putImage(-160,40,12,16,ship,0,0);
-	putImage(-160,140,12,16,ship,0,0);
-	putImage(-150,120,12,16,fish,0,0);
+	
+	//Extra Assets randomly generated for level design
+	
+	//Left Side
+	fishX = random(1,30);
+	fishY = random(1,50);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(1,30);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Top-Right side
+
+	shipX = random(80,110);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	fishX = random(80,110);
+	fishY = random(1,50);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	//Bottom-left side
+	fishX = random(20,30);
+	fishY = random(85,147);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(20,30);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Bottom-right side
+
+	fishX = random(80,110);
+	fishY = random(85,147);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(80,110);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
 
 	//Main bridge
 	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
@@ -1681,15 +1753,51 @@ void renderLevel3()
 	}
 
 	// Place various images representing objects in the game
-	putImage(8,10,12,16,ship,0,0);
-	putImage(25,20,12,16,fish,0,0);
-	putImage(20,100,12,16,fish,0,0);
-	putImage(5,140,12,16,ship,0,0);
+	//top-Left Side
+	fishX = random(1,30);
+	fishY = random(1,50);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
 
-	putImage(-150,4,12,16,fish,0,0);
-	putImage(-160,20,12,16,ship,0,0);
-	putImage(-150,100,12,16,ship,0,0);
-	putImage(-160,140,12,16,fish,0,0);
+	shipX = random(1,30);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Top-Right side
+
+	shipX = random(80,110);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	fishX = random(80,110);
+	fishY = random(1,50);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	//Bottom-left side
+	fishX = random(20,30);
+	fishY = random(85,147);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(20,30);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Bottom-right side
+
+	fishX = random(80,110);
+	fishY = random(85,147);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(80,110);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
 
 	//Main bridge
 	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
@@ -1724,15 +1832,51 @@ void renderLevel4()
 	}
 	
 	// Place various images representing objects in the game
-	putImage(8,10,12,16,fish,0,0);
-	putImage(25,20,12,16,fish,0,0);
-	putImage(20,100,12,16,ship,0,0);
-	putImage(5,140,12,16,ship,0,0);
+	//Left Side
+	fishX = random(1,30);
+	fishY = random(1,50);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
 
-	putImage(-150,4,12,16,ship,0,0);
-	putImage(-160,20,12,16,ship,0,0);
-	putImage(-150,100,12,16,fish,0,0);
-	putImage(-160,140,12,16,fish,0,0);
+	shipX = random(1,30);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Top-Right side
+
+	shipX = random(80,110);
+	shipY = random(1,50);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+
+	fishX = random(80,110);
+	fishY = random(1,50);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	//Bottom-left side
+	fishX = random(20,30);
+	fishY = random(85,147);
+
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(20,30);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
+	
+	//Bottom-right side
+
+	fishX = random(80,110);
+	fishY = random(85,147);
+	
+	putImage(fishX,fishY,12,16,fish,0,0);
+
+	shipX = random(80,110);
+	shipY = random(85,147);
+
+	putImage(shipX,shipY,12,16,ship,0,0);
 
 	//Main bridge
 	fillRectangle(40,0,45,179,RGBToWord(102,51,0));
