@@ -1476,7 +1476,6 @@ void level4(void)
 		putImage(enemy2X,enemy2Y,12,16,enemy,0,0);
 		putImage(enemy3X,enemy3Y,12,16,enemy,0,0);
 		
-
 		enemyInsidePlayer(enemyX,enemyY,x,y);
 		enemyInsidePlayer(enemy2X,enemy2Y,x,y);
 		enemyInsidePlayer(enemy3X,enemy3Y,x,y);
