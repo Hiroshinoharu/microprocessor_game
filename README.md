@@ -10,5 +10,4 @@ The STMF031K36 board serves as the canvas for this unique adventure, seamlessly 
 
 Embark on the carnivorous challenge of "Crossy Seas," where the ultimate goal is to reach the savory piece of meat while dodging enemies. The game's engaging design and carnivorous twist make it a standout addition to the world of retro-inspired digital entertainment on the STMF031K36 board. So, brace yourself for a pixelated gastronomic adventure and test your skills in this carnivorous 8-bit seascape!
 
-![Uploading image.png…]()
-
+![jollyRoger](https://github.com/Hiroshinoharu/microprocessor_game/assets/101023145/b1cebd59-5c2c-42b1-8caa-4a7828a71369)
